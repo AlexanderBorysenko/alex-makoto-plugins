@@ -20,7 +20,7 @@ The journal is the project's current truth, not a diary. Sessions are the interf
 This plugin is distributed through the **`alex-makoto-plugins`** marketplace. From any machine:
 
 ```
-claude plugin marketplace add AlexanderBorysenko/alexs-memory-system
+claude plugin marketplace add AlexanderBorysenko/alex-makoto-plugins
 claude plugin install memory-system@alex-makoto-plugins
 ```
 
