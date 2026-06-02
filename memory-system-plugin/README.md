@@ -17,9 +17,16 @@ The journal is the project's current truth, not a diary. Sessions are the interf
 
 ## Install
 
-1. Copy or symlink `memory-system-plugin/` into your Claude Code plugins directory (typically `~/.claude/plugins/memory-system/`).
-2. Restart your Claude Code session, or enable the plugin via Claude Code's plugin manager.
-3. On the next session start, the SessionStart hook fires. If `./.claude-memory/` does not exist, Claude offers to initialize it once.
+This plugin is distributed through the **`alex-makoto-plugins`** marketplace. From any machine:
+
+```
+claude plugin marketplace add <owner>/alexs-memory-system
+claude plugin install memory-system@alex-makoto-plugins
+```
+
+Then **fully restart Claude Code** so the hook, commands, and skill load. On the next session start the SessionStart hook fires; if `./.claude-memory/` does not exist, Claude offers to initialize it once.
+
+To update later: `claude plugin update memory-system@alex-makoto-plugins` (or it refreshes at startup if the marketplace has `autoUpdate` enabled).
 
 **Prerequisites:** Node.js available on PATH (used by the SessionStart hook script).
 
@@ -36,16 +43,16 @@ Trigger phrases (`wrap up`, `end session`, `new task:`, etc.) also work — the 
 
 ## CLI utility
 
-Beyond the slash commands, the plugin ships a Node script you can run directly from your shell:
+Beyond the slash commands, the plugin ships a Node script you can run directly from your shell. Inside Claude Code the skill invokes it as `${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js`; from a plain shell, point at the installed copy (a marketplace install lives under the plugin cache, e.g. `~/.claude/plugins/cache/alex-makoto-plugins/memory-system/<version>/bin/mem-index.js`):
 
 ```
-node ~/.claude/plugins/memory-system/bin/mem-index.js tasks
-node ~/.claude/plugins/memory-system/bin/mem-index.js arch
-node ~/.claude/plugins/memory-system/bin/mem-index.js findings
-node ~/.claude/plugins/memory-system/bin/mem-index.js all
+node <plugin-root>/bin/mem-index.js tasks
+node <plugin-root>/bin/mem-index.js arch
+node <plugin-root>/bin/mem-index.js findings
+node <plugin-root>/bin/mem-index.js all
 ```
 
-Flags: `--json` for machine-readable output, `--base <path>` to point at a `.claude-memory/` other than `./`.
+`tasks` groups by `open` / `done` (Open sorted most-recently-updated first). Flags: `--json` for machine-readable output, `--base <path>` to point at a `.claude-memory/` other than `./`.
 
 ## Memory layout
 
@@ -59,9 +66,11 @@ Never duplicate project-specific content into auto-memory.
 
 If your existing `.claude-memory/` follows the older format with per-task "Session Log" entries (multi-session diaries), no automated migration is needed — the plugin works against the current state of your journals. For best results, manually compress each per-task journal once: keep Findings, Decisions, Open Questions, and Next Steps; drop the Session Log section entirely. The skill will then operate on pure-state journals as designed.
 
+**Task status.** The earlier `active | paused | done` model has been replaced by `open | done` — there is no longer a single "current/active" task. Legacy `active` and `paused` statuses are read as `open` automatically by `mem-index`, so old journals keep working with no edits. At session start Claude loads only the task index and pulls a journal once your messages reveal what you're resuming.
+
 ## Origin
 
-Distilled from a workflow originally built for the il-crawlers project. The plugin removes all project-specific identifiers (project names, tool-specific startup steps, git policies, fixed paths) so it works in any repo. Full design rationale: see the [design spec](../docs/superpowers/specs/2026-05-12-memory-system-plugin-design.md) (in the source repo).
+Distilled from a workflow originally built for an internal crawler project. The plugin removes all project-specific identifiers (project names, tool-specific startup steps, git policies, fixed paths) so it works in any repo. Design rationale for the no-active-task model: see [docs/superpowers/specs/2026-06-02-remove-active-task-concept-design.md](docs/superpowers/specs/2026-06-02-remove-active-task-concept-design.md).
 
 ## License
 
