@@ -1,0 +1,8 @@
+{
+  "name": "memory-system",
+  "version": "0.2.0",
+  "description": "Project memory and task-journal workflow. Provides architecture cache + per-task journals + session triggers as a reusable Claude Code plugin.",
+  "author": {
+    "name": "alex.borysenko"
+  }
+}

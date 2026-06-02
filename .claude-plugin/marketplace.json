@@ -1,0 +1,15 @@
+{
+  "name": "alex-makoto-plugins",
+  "owner": {
+    "name": "Alex Borysenko"
+  },
+  "description": "Alex's Claude Code plugins.",
+  "plugins": [
+    {
+      "name": "memory-system",
+      "source": "./memory-system-plugin",
+      "version": "0.2.0",
+      "description": "Project memory and task-journal workflow with on-demand index generation."
+    }
+  ]
+}
