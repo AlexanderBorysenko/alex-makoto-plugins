@@ -16,3 +16,6 @@ Run the Protocol Codebase Explainer workflow for: $ARGUMENTS
    flow-regression and hotspot advisory. Do NOT write code before I review the diff on the diagram.
 
 Throughout: honor spec/agent-contract.md. Use display_ids (N2, E3, BB1) when we discuss elements.
+If my task asks for "simple words" / high level / big picture in any form, apply the altitude
+preset per contract §11 (presets/overview.md): canonical map first, overview projection second,
+and give me BOTH viewer links.

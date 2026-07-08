@@ -15,16 +15,12 @@ const alias = nameIdx >= 0 ? rest[nameIdx + 1] : null;
 const raw = await readFile(src, "utf8");
 let doc;
 try { doc = JSON.parse(raw); } catch (e) { console.error("invalid JSON:", e.message); process.exit(1); }
-// minimal contract lint
-const problems = [];
-if (doc.protocol_version !== "0.4") problems.push("protocol_version must be '0.4'");
-if (!doc.meta?.commit_hash) problems.push("meta.commit_hash missing (maps are ephemeral — stamp them)");
-for (const n of doc.nodes || []) {
-  if (!n.resolution) problems.push(`node ${n.id}: no resolution (perimeter closure violated)`);
-  if ((n.resolution === "suspected" || n.resolution === "dismissed") && !n.evidence)
-    problems.push(`node ${n.id}: ${n.resolution} without evidence (contract §2)`);
-}
-if (problems.length) { console.error("CONTRACT LINT FAILED:\n - " + problems.join("\n - ")); process.exit(2); }
+// contract lint (spec/lint.mjs): perimeter closure, evidence, flow well-formedness,
+// deterministic-metric recompute, hotspot eligibility. Registration IS validation.
+const { lintMap } = await import(new URL("../spec/lint.mjs", import.meta.url));
+const { errors, warnings } = lintMap(doc);
+if (warnings.length) console.warn("LINT WARNINGS:\n - " + warnings.join("\n - "));
+if (errors.length) { console.error("CONTRACT LINT FAILED:\n - " + errors.join("\n - ")); process.exit(2); }
 
 const hash = createHash("sha1").update(raw).digest("hex").slice(0, 12);
 await mkdir(join(ROOT, "maps"), { recursive: true });

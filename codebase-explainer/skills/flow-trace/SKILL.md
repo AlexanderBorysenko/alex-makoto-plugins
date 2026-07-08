@@ -7,6 +7,11 @@ description: Generate behavioral flows (call/return/async arrow sequences) for a
 
 Adds `flows[]` to an existing map document. Obey `spec/agent-contract.md` §5.
 
+If the document has `meta.preset` (or the human asks for flows "in simple words" — contract §11),
+load `presets/<preset>.md` and follow it: trace flows on the CANONICAL map first, then project
+coarse arrows (one per collapsed-group interaction, plain verb labels) into the preset map.
+Stack balance applies to the projection too.
+
 ## Procedure
 
 1. Identify the flows that matter for `meta.intent`:
@@ -20,6 +25,8 @@ Adds `flows[]` to an existing map document. Obey `spec/agent-contract.md` §5.
    - async arrows get no return;
    - mid-process flows start with `preface` context arrows;
    - each step: `explanation` (what + why it matters) + `code_ref` where possible.
+     Write `explanation`, `flow.title`, `flow.description` and `arrow.label` prose in the
+     human's session language (contract §10); keep `arrow.type`, `edge` ids and code symbols canonical.
 4. Map each arrow to its structural `edge` id — this is what synchronizes MAP and SEQUENCE.
 5. Update `nodes[].metrics.flows_count`.
 6. Re-register the map (`node viewer/register-map.mjs`) so the viewer picks up the new version.

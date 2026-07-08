@@ -35,7 +35,10 @@
             "not_scanned": { "type": "array", "items": { "type": "string" }, "description": "e.g. ['manual prod changes', 'external systems without code in repo']" }
           }
         },
-        "environment_manifest_ref": { "type": "string", "description": "Path/URL of the manifest consumed during generation, if any." }
+        "environment_manifest_ref": { "type": "string", "description": "Path/URL of the manifest consumed during generation, if any." },
+        "preset": { "type": "string", "description": "Altitude preset this map was generated under (e.g. 'overview'). Absent = canonical full-detail map. Rules: agent-contract.md §11 + presets/<preset>.md." },
+        "derived_from": { "type": "string", "description": "For preset projections: absolute path (forward slashes) of the canonical map this document was derived from. Projections are regenerated map-to-map, never analyzed from code directly." },
+        "source_root": { "type": "string", "description": "Absolute path to the analyzed repo on the machine running the viewer. When present, the viewer resolves node.source_refs (file:lineStart-lineEnd, repo-relative) to live code: previews the slice in the inspector and offers 'Open in IDE' (code -g). Omit to fall back to embedded code_snippets only." }
       }
     },
 
@@ -106,6 +109,7 @@
         "summary": { "type": "string" },
         "hotspots": {
           "type": "array",
+          "description": "God-node / blast-radius warnings. Selection is DETERMINISTIC (spec/lint.mjs::hotspotEligible over tangle_score); the LLM only writes the recommendation. Lint rejects hotspots outside the eligible set.",
           "items": {
             "type": "object",
             "required": ["node", "recommendation"],
@@ -113,6 +117,20 @@
               "node": { "type": "string" },
               "recommendation": { "type": "string", "description": "e.g. 'refactor before fixing: extract retry policy; otherwise regression risk in flows X, Y, Z'" },
               "supporting_metrics": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "notes": {
+          "type": "array",
+          "description": "Non-structural observations that are NOT hotspots: runtime/perf bottlenecks, logic-density, operational risks. Honest home for insight that doesn't predict breakage radius.",
+          "items": {
+            "type": "object",
+            "required": ["node", "kind", "note"],
+            "properties": {
+              "node": { "type": "string" },
+              "kind": { "enum": ["perf", "logic", "risk"] },
+              "note": { "type": "string" },
+              "code_ref": { "type": "string" }
             }
           }
         },
@@ -181,7 +199,7 @@
             "tangle_score": { "type": "number", "description": "0..1 composite; formula documented in agent-contract.md." }
           }
         },
-        "pos": { "type": "object", "properties": { "x": {"type":"number"}, "y": {"type":"number"} }, "description": "Layout hint. Future: replaced by auto-layout (elk/dagre)." },
+        "pos": { "type": "object", "properties": { "x": {"type":"number"}, "y": {"type":"number"} }, "description": "OPTIONAL layout hint. If omitted, the viewer assigns a position via built-in left→right layered auto-layout. Provide pos only to pin a node; mixing pinned and auto nodes is allowed but auto nodes are placed on a grid and may sit near pinned ones." },
         "expandable": { "type": "boolean" },
         "investigated_at": { "type": "string", "format": "date-time", "description": "Reserved for future map accumulation. Optional in v0.4." }
       }
@@ -212,7 +230,10 @@
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
-        "kind": { "enum": ["happy_path", "bug_path", "edge_case", "proposed"] },
+        "kind": {
+          "enum": ["happy_path", "failure_path", "bug_path", "edge_case", "proposed"],
+          "description": "happy_path: canonical success. failure_path: DESIGNED failure handling — the system behaving as intended under a fault (use for explain-intent failure scenarios). bug_path: reproduction of an ACTUAL defect (debug intent only — implies 'this is broken now'). edge_case: unusual-but-valid input/state. proposed: flow under a proposed diff."
+        },
         "description": { "type": "string" },
         "participants": { "type": "array", "items": { "type": "string" }, "description": "Ordered lifelines for SEQUENCE." },
         "entry": { "type": "string" },

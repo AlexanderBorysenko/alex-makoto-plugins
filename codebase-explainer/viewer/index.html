@@ -24,6 +24,8 @@
   header .title{font-size:13px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}
   header .stamp{font-family:var(--mono);font-size:10px;color:var(--faint)}
   header .spacer{flex:1}
+  header .mappath{font-family:var(--mono);font-size:11px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 9px;width:320px;outline:none}
+  header .mappath:focus{border-color:var(--accent);color:var(--fg)}
   .toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none;font-family:var(--mono)}
   .toggle .sw{width:34px;height:18px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);position:relative;transition:.2s}
   .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--faint);transition:.2s}
@@ -40,6 +42,7 @@
   .flow .name{font-size:13px;font-weight:600}
   .flow .kindtag{font-family:var(--mono);font-size:10px;margin-top:4px;color:var(--dim)}
   .flow.bug .kindtag{color:var(--rem)}
+  .flow.failure .kindtag{color:#d9a13d}
   .flowdesc{font-size:12px;color:var(--dim);line-height:1.5;margin:6px 0 10px}
   .btnrow{display:flex;gap:6px;flex-wrap:wrap}
   button{font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer}
@@ -53,17 +56,18 @@
   .bb-list .bb .e{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.4}
   .hint{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:12px;line-height:1.6;border-top:1px dashed var(--line);padding-top:10px}
   .canvaswrap{position:relative;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(circle at 30% 20%, #101a2c 0%, var(--bg) 60%)}
-  .viewtabs{display:flex;gap:2px;padding:8px 12px 0;flex:none;align-items:flex-end}
+  #fx{position:absolute;inset:0;z-index:0;pointer-events:none}
+  .viewtabs{display:flex;gap:2px;padding:8px 12px 0;flex:none;align-items:flex-end;position:relative;z-index:1}
   .vtab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 16px;border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;background:transparent;color:var(--dim);cursor:pointer}
   .vtab.active{background:var(--panel2);color:var(--accent);border-color:var(--accent)}
   .vtab:disabled{opacity:.35;cursor:default}
   .zoomctl{margin-left:auto;display:flex;gap:4px;padding-bottom:4px}
-  .viewbody{flex:1;position:relative;border-top:1px solid var(--line);overflow:hidden}
+  .viewbody{flex:1;position:relative;border-top:1px solid var(--line);overflow:hidden;z-index:1}
   .viewpane{position:absolute;inset:0;display:none}
   .viewpane.active{display:block}
   svg{display:block}
-  #svgMap{width:100%;height:100%;cursor:grab} #svgMap.panning{cursor:grabbing}
-  #seqScroll{position:absolute;inset:0;overflow:auto}
+  #svgMap,#svgSeq{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
+  #svgMap.panning,#svgSeq.panning{cursor:grabbing;user-select:none;-webkit-user-select:none}
   .node rect.body{fill:var(--panel2);stroke:var(--line);stroke-width:1.2;rx:9}
   .node:hover rect.body{stroke:var(--dim)}
   .node.selected rect.body{stroke:var(--accent);stroke-width:1.6}
@@ -88,6 +92,12 @@
   .edge.suspect path.vis{stroke:var(--faint);stroke-dasharray:2 5}
   .edge.suspect text{fill:var(--faint);font-style:italic}
   .edge text{fill:var(--faint);font-family:var(--mono);font-size:9.5px}
+  .labelplate{fill:var(--bg);fill-opacity:.82;stroke:none}
+  .edge.lit .labelplate{fill:var(--panel);fill-opacity:.9}
+  .edge:hover path.vis{stroke:var(--text)}
+  .edgelabel-box{fill:var(--panel);stroke:var(--accent);stroke-width:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+  .edgelabel-txt{fill:var(--text);font-family:var(--mono);font-size:10.5px}
+  .edgelabel-id{fill:var(--accent);font-family:var(--mono);font-size:9px}
   .edge.lit path.vis{stroke:var(--accent);stroke-width:2.4;stroke-dasharray:8 6;animation:signal .7s linear infinite}
   .edge.lit text{fill:var(--accent)}
   .edge.dim{opacity:.22}
@@ -147,14 +157,23 @@
   .xnav{color:var(--accent)} .xnav:hover{border-color:var(--accent)}
   pre.code{font-family:var(--mono);font-size:11px;line-height:1.55;background:#0a0f1a;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;color:#c3cee3;margin-top:8px}
   pre.code .hl{background:rgba(242,169,59,.14);display:block;margin:0 -12px;padding:0 12px;border-left:2px solid var(--accent)}
+  pre.code .lnum{display:inline-block;width:2.4em;text-align:right;margin-right:10px;color:var(--faint);user-select:none}
+  h2.codehead{word-break:break-all;overflow-wrap:anywhere}
   .empty{color:var(--faint);font-size:12px;line-height:1.6;margin-top:8px}
   .diffcard{border:1px solid var(--line);border-left:3px solid var(--add);border-radius:6px;padding:9px 11px;margin-bottom:8px}
   .diffcard.mod{border-left-color:var(--mod)}
   .diffcard .op{font-family:var(--mono);font-size:10px;color:var(--add)}
   .diffcard.mod .op{color:var(--mod)}
   .diffcard .rat{font-size:12px;color:var(--dim);line-height:1.5;margin-top:4px}
+  .diffcard.hotcard{cursor:pointer}
+  .diffcard.hotcard:hover{border-left-color:var(--rem);border-color:var(--rem)}
   .loaderr{padding:40px;color:var(--rem);font-family:var(--mono);font-size:13px;line-height:1.8}
+  #fxToggle{position:fixed;left:298px;bottom:12px;z-index:20;font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:rgba(20,28,44,.85);color:var(--faint);cursor:pointer;backdrop-filter:blur(4px);transition:.15s}
+  #fxToggle:hover{border-color:var(--faint);color:var(--dim)}
+  #fxToggle.off{color:var(--faint);opacity:.6}
+  #fxToggle.on{color:var(--dim);border-color:var(--line)}
 </style>
+<link rel="stylesheet" href="vendor/hljs-atom-one-dark.css">
 </head>
 <body>
 <div class="app">
@@ -163,6 +182,8 @@
     <div class="title" id="metaTitle">loading…</div>
     <div class="stamp" id="metaStamp"></div>
     <div class="spacer"></div>
+    <input id="mapPath" class="mappath" type="text" spellcheck="false"
+           placeholder="path to map (.json) — Enter to open" title="Absolute path to a map.json; the viewer reads it live (edit file → refresh)">
     <div class="toggle heat" id="heatToggle" role="switch" aria-checked="false" tabindex="0"><span>heat</span><span class="sw"></span></div>
     <div class="toggle" id="diffToggle" role="switch" aria-checked="false" tabindex="0"><span>diff</span><span class="sw"></span></div>
   </header>
@@ -177,12 +198,10 @@
   </aside>
 
   <div class="canvaswrap">
+    <canvas id="fx" aria-hidden="true"></canvas>
     <div class="viewtabs">
       <button class="vtab active" id="tabMap">⬡ MAP · structure</button>
       <button class="vtab" id="tabSeq" disabled>⇅ SEQUENCE · flow</button>
-      <div class="zoomctl" id="seqZoomCtl" style="display:none">
-        <button id="zOut">−</button><button id="zIn">+</button><button id="zReset">1:1</button>
-      </div>
     </div>
     <div class="viewbody">
       <div class="viewpane active" id="paneMap">
@@ -195,7 +214,7 @@
           <g id="worldMap"></g>
         </svg>
       </div>
-      <div class="viewpane" id="paneSeq"><div id="seqScroll"><svg id="svgSeq"></svg></div></div>
+      <div class="viewpane" id="paneSeq"><svg id="svgSeq"><g id="worldSeq"></g></svg></div>
       <div class="playbar" id="playbar">
         <div class="stepline">
           <span class="seq" id="pbSeq"></span>
@@ -214,33 +233,79 @@
 
   <div class="rightpanel" id="rightpanel">
     <h2>Inspector</h2>
-    <div class="empty">Клікни ноду/lifeline/ребро. Black boxes — у сайдбарі зліва.</div>
+    <div class="empty">Click a node / lifeline / edge. Black boxes are in the left sidebar.</div>
   </div>
 </div>
 
+<button id="fxToggle" title="Toggle background visuals">✦ visuals</button>
+<svg id="measSvg" width="0" height="0" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true"></svg>
+<script src="vendor/dagre.min.js"></script>
+<script src="vendor/highlight.min.js"></script>
 <script>
 /* ============ load map by ?map=<hash> ============ */
 let DOC=null;
 const KIND_COLOR=k=>({controller:"var(--k-controller)",service:"var(--k-service)",gateway:"var(--k-gateway)",repo:"var(--k-repo)",queue:"var(--k-queue)",consumer:"var(--k-consumer)",internal:"var(--k-internal)",db_trigger:"var(--k-db_trigger)",scheduled_job:"var(--k-scheduled_job)",external_system:"var(--k-external_system)"}[k]||"var(--faint)");
-const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null,seqZoom:1};
+const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null};
 const NS="http://www.w3.org/2000/svg";
 function el(tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;return e;}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 
 async function boot(){
-  const hash=new URLSearchParams(location.search).get("map")||"example";
+  const params=new URLSearchParams(location.search);
+  // Primary mode: ?path=<abs path to map.json> — one canonical file per task,
+  // read live from disk (edit file → refresh). ?map=<hash> kept for registry back-compat.
+  const mapPath=params.get("path");
+  const hash=params.get("map")||"example";
+  const src=mapPath?`/mapfile?path=${encodeURIComponent(mapPath)}`:`maps/${hash}.json`;
+  const pathInput=document.getElementById("mapPath");
+  if(mapPath)pathInput.value=mapPath;
+  pathInput.addEventListener("keydown",e=>{
+    if(e.key==="Enter"&&pathInput.value.trim())
+      location.href=`?path=${encodeURIComponent(pathInput.value.trim())}`;
+  });
   try{
-    const r=await fetch(`maps/${hash}.json`);
+    const r=await fetch(src);
     if(!r.ok) throw new Error(r.status);
     DOC=await r.json();
+    if(DOC.error) throw new Error(DOC.error);
   }catch(e){
     document.getElementById("paneMap").innerHTML=
-      `<div class="loaderr">Не вдалось завантажити maps/${esc(hash)}.json (${esc(e.message)}).<br>
-       Зареєструй мапу: node register-map.mjs &lt;file&gt; → відкрий /?map=&lt;hash&gt;<br>
-       Або відкрий приклад: <a href="?map=example" style="color:var(--accent)">/?map=example</a></div>`;
+      `<div class="loaderr">Failed to load ${esc(mapPath||`maps/${hash}.json`)} (${esc(e.message)}).<br>
+       Enter the path to map.json in the field above, or open /?path=&lt;absolute path&gt;<br>
+       Or try the example: <a href="?map=example" style="color:var(--accent)">/?map=example</a></div>`;
     return;
   }
+  ensureLayout();
   init();
+}
+
+/* Auto-layout fallback: schema keeps node.pos optional ("layout hint"); when any
+   node lacks it, run dagre (already vendored) left-to-right over confirmed edges
+   so the map renders instead of crashing on a.pos.x. Hand-set pos wins when ALL
+   nodes carry it. */
+function ensureLayout(){
+  const nodes=DOC.nodes||[];
+  if(nodes.length&&nodes.every(n=>n.pos&&typeof n.pos.x==="number"&&typeof n.pos.y==="number"))return;
+  const g=new dagre.graphlib.Graph();
+  g.setGraph({rankdir:"LR",nodesep:36,ranksep:90,marginx:40,marginy:40});
+  g.setDefaultEdgeLabel(()=>({}));
+  const W=195,H=54,IW=150,IH=40; // mirror NODE_W/NODE_H/IN_W/IN_H
+  nodes.forEach(n=>g.setNode(n.id,{width:n.kind==="internal"?IW:W,height:n.kind==="internal"?IH:H}));
+  (DOC.edges||[]).forEach(e=>{
+    if(e.kind==="suspected_influence")return; // keep BB boxes off the spine; placed after
+    if(g.hasNode(e.from)&&g.hasNode(e.to))g.setEdge(e.from,e.to);
+  });
+  dagre.layout(g);
+  let maxY=0;
+  nodes.forEach(n=>{
+    const p=g.node(n.id);
+    if(p){n.pos={x:p.x-p.width/2,y:p.y-p.height/2};maxY=Math.max(maxY,n.pos.y+p.height);}
+  });
+  // Suspected-only nodes that dagre left isolated: row them under the graph.
+  let bx=40;
+  nodes.forEach(n=>{
+    if(!n.pos){n.pos={x:bx,y:maxY+80};bx+=(n.kind==="internal"?IW:W)+40;}
+  });
 }
 
 /* ============ helpers over DOC ============ */
@@ -287,91 +352,208 @@ function heatColor(s){ // 0..1 -> green..red
 
 /* ============ MAP ============ */
 const worldMap=document.getElementById("worldMap"),svgMap=document.getElementById("svgMap");
-const NODE_W=195,NODE_H=54,IN_W=150,IN_H=40;
-function dims(n){return n.kind==="internal"?[IN_W,IN_H]:[NODE_W,NODE_H];}
-function edgePath(a,b,aw,ah,bw,bh){
-  const ax=a.pos.x+aw/2,ay=a.pos.y+ah/2,bx=b.pos.x+bw/2,by=b.pos.y+bh/2;
-  if(Math.abs(bx-ax)>=Math.abs(by-ay)){
-    const x1=ax+(bx>ax?aw/2:-aw/2),x2=bx+(bx>ax?-bw/2:bw/2),mx=(x1+x2)/2;
-    return{d:`M${x1} ${ay} C ${mx} ${ay}, ${mx} ${by}, ${x2} ${by}`,mx,my:(ay+by)/2};
-  }else{
-    const y1=ay+(by>ay?ah/2:-ah/2),y2=by+(by>ay?-bh/2:bh/2),my=(y1+y2)/2;
-    return{d:`M${ax} ${y1} C ${ax} ${my}, ${bx} ${my}, ${bx} ${y2}`,mx:(ax+bx)/2,my};
-  }
+/* pos is IGNORED — dagre drives map layout. Nodes are sized to their text
+   (wrapped to a max width); dagre assigns ranks/positions and routes edges so
+   blocks fit their labels and connections avoid nodes. */
+const measSvg=document.getElementById("measSvg");
+const NODE_MINW=150,NODE_MAXTEXTW=300,IN_MINW=120,LINE_H=16,PADX=28;
+const NB=new Map();                     // node id -> box {w,h,lines,kindText,first,kindY}
+function measureWidth(str,wrapCls,textCls){
+  const g=el("g",{class:wrapCls}),t=el("text",textCls?{class:textCls}:{},str||"");
+  g.appendChild(t);measSvg.appendChild(g);
+  const w=t.getComputedTextLength();measSvg.removeChild(g);return w;
 }
-function renderMap(){
-  worldMap.innerHTML="";
-  const litNodes=new Set(),litEdges=new Set();let dimming=false;
-  if(state.flow&&state.step>=0){dimming=true;const st=state.flow.steps[state.step];
-    stepNodes(st).forEach(id=>litNodes.add(id));stepEdges(st).forEach(id=>litEdges.add(id));}
-  const mods=modifiedIds(),addsN=addedNodeIds(),addsE=addedEdgeIds();
-
+function wrapLabel(str,maxw){
+  const words=String(str).split(/\s+/),lines=[];let cur="";
+  for(const w of words){
+    const test=cur?cur+" "+w:w;
+    if(cur&&measureWidth(test,"node","label")>maxw){lines.push(cur);cur=w;}else cur=test;
+  }
+  if(cur)lines.push(cur);
+  return lines.length?lines:[""];
+}
+function boxFor(n){
+  const c=NB.get(n.id);if(c)return c;
+  const small=n.kind==="internal",isSusp=n.resolution==="suspected";
+  const maxtw=small?200:NODE_MAXTEXTW;
+  const lines=wrapLabel((isSusp?"? ":"")+n.label,maxtw);
+  let textW=0;lines.forEach(l=>textW=Math.max(textW,measureWidth(l,"node","label")));
+  const kindText=small?"":(isSusp?"BLACK BOX · "+n.kind:n.kind.toUpperCase());
+  const kindW=kindText?measureWidth(kindText,"node","kind"):0;
+  const idW=n.display_id?measureWidth(n.display_id,"node","nid"):0;
+  let w=Math.max(small?IN_MINW:NODE_MINW,textW,kindW,idW+30)+PADX;
+  w=Math.min(w,(small?200:NODE_MAXTEXTW)+PADX+30);
+  const first=small?18:20,lastY=first+(lines.length-1)*LINE_H,kindY=lastY+(kindText?15:0),h=kindY+14;
+  const box={w:Math.round(w),h:Math.round(h),lines,kindText,first,kindY};
+  NB.set(n.id,box);return box;
+}
+function pointsPath(pts){
+  let d=`M${pts[0].x} ${pts[0].y}`;
+  for(let i=1;i<pts.length;i++)d+=` L${pts[i].x} ${pts[i].y}`;
+  return d;
+}
+let _layout=null,_layoutSig=null;
+function layoutSig(){return JSON.stringify([Object.keys(state.expanded).filter(k=>state.expanded[k]).sort(),!!state.diff]);}
+function computeMapLayout(){
+  const sig=layoutSig();
+  if(_layout&&_layoutSig===sig)return _layout;
+  const g=new dagre.graphlib.Graph({compound:true,multigraph:true});
+  g.setGraph({rankdir:"LR",nodesep:36,ranksep:82,edgesep:20,marginx:24,marginy:24});
+  g.setDefaultEdgeLabel(()=>({}));
+  const drawNodes=[],clusters=[];
+  visibleNodes().forEach(n=>{const b=boxFor(n);g.setNode(n.id,{width:b.w,height:b.h});drawNodes.push({n,small:false});});
   for(const pid in state.expanded){
     if(!state.expanded[pid])continue;
-    const g=(DOC.expanded_children||{})[pid];if(!g)continue;
-    const f=g.frame||{x:100,y:100,w:300,h:300},parent=nodeById(pid);
-    worldMap.appendChild(el("rect",{class:"groupframe"+(litNodes.has(pid)?" lit":""),x:f.x,y:f.y,width:f.w,height:f.h,rx:12}));
-    const lbl=el("text",{class:"groupframe-label",x:f.x+12,y:f.y+20},parent.label+" · internals");
-    lbl.addEventListener("click",()=>selectNode(pid));worldMap.appendChild(lbl);
-    worldMap.appendChild(el("text",{class:"groupframe-id",x:f.x+f.w-34,y:f.y+18},parent.display_id));
-    const col=el("text",{class:"collapse",x:f.x+f.w-16,y:f.y+20},"−");
-    col.addEventListener("click",()=>{state.expanded[pid]=false;renderMap();});worldMap.appendChild(col);
+    const grp=(DOC.expanded_children||{})[pid];if(!grp)continue;
+    const clId="__cl__"+pid;g.setNode(clId,{});clusters.push({clId,pid});
+    (grp.nodes||[]).forEach(c=>{const b=boxFor(c);g.setNode(c.id,{width:b.w,height:b.h});g.setParent(c.id,clId);drawNodes.push({n:c,small:true});});
   }
-
-  const allEdges=[...visibleEdges()];
+  const edgePairs=[],allEdges=[...visibleEdges()];
   for(const pid in state.expanded){if(state.expanded[pid])allEdges.push(...(DOC.expanded_children[pid].edges||[]));}
   allEdges.forEach(e=>{
     const fromN=nodeById(e.from),toN=nodeById(e.to);
     if((fromN&&fromN.resolution==="dismissed")||(toN&&toN.resolution==="dismissed"))return;
-    resolveEndpoints(e).forEach(([a,b])=>{
-      const[aw,ah]=dims(a),[bw,bh]=dims(b);
-      const isLit=litEdges.has(e.id),isAdd=addsE.includes(e.id),isSusp=e.kind==="suspected_influence";
-      const g=el("g",{class:"edge"+(e.kind==="async_msg"?" async":"")+(isSusp?" suspect":"")+(isLit?" lit":"")+(dimming&&!isLit?" dim":"")+(isAdd?" diff-add":"")});
-      const p=edgePath(a,b,aw,ah,bw,bh);
-      g.appendChild(el("path",{class:"hit",d:p.d}));
-      g.appendChild(el("path",{class:"vis",d:p.d,"marker-end":isLit?"url(#arrLit)":(isAdd?"url(#arrAdd)":"url(#arr)")}));
-      const lab=(isSusp?"? ":"")+(e.label||"");
-      if(lab.trim())g.appendChild(el("text",{x:p.mx,y:p.my-7,"text-anchor":"middle"},lab));
-      if(e.display_id)g.appendChild(el("text",{class:"eid",x:p.mx,y:p.my+9,"text-anchor":"middle"},e.display_id));
-      g.addEventListener("click",ev=>{ev.stopPropagation();showEdgeCrossNav(e);});
-      worldMap.appendChild(g);
+    resolveEndpoints(e).forEach(([a,b],idx)=>{
+      if(!a||!b||a.id===b.id||!g.hasNode(a.id)||!g.hasNode(b.id))return;
+      const name=e.id+"#"+idx;g.setEdge(a.id,b.id,{},name);
+      edgePairs.push({e,a,b,name});
     });
   });
-
-  const draw=(n,small)=>{
-    const[w,h]=dims(n);
-    const isLit=litNodes.has(n.id),isSel=state.selected===n.id;
-    const isAdd=addsN.includes(n.id),isMod=mods.includes(n.id),isSusp=n.resolution==="suspected";
-    const g=el("g",{class:"node"+(isSusp?" suspected":"")+(isLit?" lit":"")+(dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${n.pos.x},${n.pos.y})`});
-    const body=el("rect",{class:"body",width:w,height:h,rx:9});
-    if(state.heat&&n.metrics&&typeof n.metrics.tangle_score==="number"&&!isSusp){
-      body.setAttribute("style",`stroke:${heatColor(n.metrics.tangle_score)};stroke-width:2.4`);
+  dagre.layout(g);
+  _layout={g,drawNodes,clusters,edgePairs,needFit:true};_layoutSig=sig;
+  return _layout;
+}
+function drawNode(n,g,ctx){
+  const nd=g.node(n.id);if(!nd)return;
+  const b=boxFor(n),w=nd.width,h=nd.height,x=nd.x-w/2,y=nd.y-h/2;
+  const isLit=ctx.litNodes.has(n.id),isSel=state.selected===n.id;
+  const isAdd=ctx.addsN.includes(n.id),isMod=ctx.mods.includes(n.id),isSusp=n.resolution==="suspected";
+  const hasTS=!!(n.metrics&&typeof n.metrics.tangle_score==="number");
+  const isHot=state.heat&&!isSusp&&ctx.hotspots&&(ctx.hotspots.has(n.display_id)||ctx.hotspots.has(n.id));
+  const grp=el("g",{class:"node"+(isSusp?" suspected":"")+(isLit?" lit":"")+(ctx.dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${x},${y})`});
+  const body=el("rect",{class:"body",width:w,height:h,rx:9});
+  if(state.heat&&hasTS&&!isSusp)body.setAttribute("style",`stroke:${heatColor(n.metrics.tangle_score)};stroke-width:2.4`);
+  else if(isHot)body.setAttribute("style","stroke:var(--rem);stroke-width:2.4");
+  grp.appendChild(body);
+  grp.appendChild(el("rect",{class:"kbar",x:0,y:0,width:4,height:h,rx:2,fill:isSusp?"var(--faint)":KIND_COLOR(n.kind)}));
+  b.lines.forEach((ln,i)=>grp.appendChild(el("text",{class:"label",x:14,y:b.first+i*LINE_H},ln)));
+  if(b.kindText)grp.appendChild(el("text",{class:"kind",x:14,y:b.kindY,fill:isSusp?"var(--faint)":KIND_COLOR(n.kind)},b.kindText));
+  grp.appendChild(el("text",{class:"nid",x:w-8,y:h-7,"text-anchor":"end"},n.display_id||""));
+  if(state.heat&&hasTS&&!isSusp)
+    grp.appendChild(el("text",{class:"difftag",x:w-46,y:14,fill:heatColor(n.metrics.tangle_score)},"♨ "+n.metrics.tangle_score.toFixed(2)));
+  else if(isHot)grp.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--rem)"},"♨ HOT"));
+  if(isAdd)grp.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--add)"},"+ NEW"));
+  if(isMod)grp.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--mod)"},"~ MOD"));
+  if(n.expandable&&!isExpanded(n.id)&&(DOC.expanded_children||{})[n.id]){
+    const ex=el("g",{class:"expander",transform:`translate(${w-18},${h-16})`});
+    ex.appendChild(el("circle",{r:9}));ex.appendChild(el("text",{x:0,y:4,"text-anchor":"middle"},"+"));
+    ex.addEventListener("click",ev=>{ev.stopPropagation();state.expanded[n.id]=true;renderMap();});
+    grp.appendChild(ex);
+  }
+  grp.addEventListener("click",()=>{
+    const sel=window.getSelection();
+    if(sel&&!sel.isCollapsed)return;   // user was selecting text in the node — don't re-render
+    selectNode(n.id);
+  });
+  worldMap.appendChild(grp);
+}
+function fitMap(L){
+  const gg=L.g.graph(),gw=gg.width||1,gh=gg.height||1,VB_W=1420,VB_H=780,pad=24;
+  view.k=Math.min((VB_W-pad*2)/gw,(VB_H-pad*2)/gh,1.5);
+  view.x=pad+(VB_W-pad*2-gw*view.k)/2;
+  view.y=pad+(VB_H-pad*2-gh*view.k)/2;
+  applyView();
+}
+/* connection labels are hidden by default (they collide with cards). They pop
+   to the front in their own box on edge hover, and stay lit during playback. */
+let hoverLayer=null,hoverBox=null;
+function edgeLabelBox(e){
+  const lab=(e.kind==="suspected_influence"?"? ":"")+(e.label||"");
+  const idt=e.display_id||"",hasLab=!!lab.trim();
+  // id is a trailing tspan (part of the text flow) so it can never overlap the label
+  const t=el("text",{class:"edgelabel-txt"});
+  if(hasLab)t.appendChild(el("tspan",{},lab));
+  if(idt)t.appendChild(el("tspan",{class:"edgelabel-id",dx:hasLab?"8":"0"},idt));
+  measSvg.appendChild(t);const tw=t.getComputedTextLength();measSvg.removeChild(t);
+  const padX=10,boxW=Math.max(20,tw)+padX*2,boxH=20;
+  const grp=el("g",{class:"edgelabel","pointer-events":"none"});
+  grp.appendChild(el("rect",{class:"edgelabel-box",x:-boxW/2,y:-boxH/2,width:boxW,height:boxH,rx:5}));
+  t.setAttribute("x",-boxW/2+padX);t.setAttribute("y",4);
+  grp.appendChild(t);
+  return grp;
+}
+function clientToWorld(cx,cy){
+  const ctm=worldMap.getScreenCTM();if(!ctm)return{x:0,y:0};
+  const p=svgMap.createSVGPoint();p.x=cx;p.y=cy;
+  const u=p.matrixTransform(ctm.inverse());return{x:u.x,y:u.y};
+}
+function startHover(e,ev){if(!hoverLayer)return;hoverLayer.innerHTML="";hoverBox=edgeLabelBox(e);hoverLayer.appendChild(hoverBox);moveHover(ev);}
+function moveHover(ev){if(!hoverBox)return;const w=clientToWorld(ev.clientX,ev.clientY);hoverBox.setAttribute("transform",`translate(${w.x},${w.y-22})`);}
+function clearEdgeLabel(){if(hoverLayer)hoverLayer.innerHTML="";hoverBox=null;}
+function renderMap(){
+  worldMap.innerHTML="";hoverLayer=null;
+  const L=computeMapLayout(),g=L.g;
+  const litNodes=new Set(),litEdges=new Set();let dimming=false;
+  if(state.flow&&state.step>=0){dimming=true;const st=state.flow.steps[state.step];
+    stepNodes(st).forEach(id=>litNodes.add(id));stepEdges(st).forEach(id=>litEdges.add(id));}
+  const mods=modifiedIds(),addsN=addedNodeIds(),addsE=addedEdgeIds();
+  L.clusters.forEach(({clId,pid})=>{
+    const cb=g.node(clId);if(!cb)return;
+    const x=cb.x-cb.width/2,y=cb.y-cb.height/2,parent=nodeById(pid);
+    worldMap.appendChild(el("rect",{class:"groupframe"+(litNodes.has(pid)?" lit":""),x,y,width:cb.width,height:cb.height,rx:12}));
+    const lbl=el("text",{class:"groupframe-label",x:x+12,y:y+18},(parent?parent.label:pid)+" · internals");
+    lbl.addEventListener("click",()=>selectNode(pid));worldMap.appendChild(lbl);
+    if(parent)worldMap.appendChild(el("text",{class:"groupframe-id",x:x+cb.width-34,y:y+16},parent.display_id));
+    const col=el("text",{class:"collapse",x:x+cb.width-16,y:y+18},"−");
+    col.addEventListener("click",()=>{state.expanded[pid]=false;renderMap();});worldMap.appendChild(col);
+  });
+  L.edgePairs.forEach(({e,a,b,name})=>{
+    const ed=g.edge(a.id,b.id,name);if(!ed||!ed.points||!ed.points.length)return;
+    const isLit=litEdges.has(e.id),isAdd=addsE.includes(e.id),isSusp=e.kind==="suspected_influence";
+    const grp=el("g",{class:"edge"+(e.kind==="async_msg"?" async":"")+(isSusp?" suspect":"")+(isLit?" lit":"")+(dimming&&!isLit?" dim":"")+(isAdd?" diff-add":"")});
+    const d=pointsPath(ed.points);
+    grp.appendChild(el("path",{class:"hit",d}));
+    grp.appendChild(el("path",{class:"vis",d,"marker-end":isLit?"url(#arrLit)":(isAdd?"url(#arrAdd)":"url(#arr)")}));
+    const mid=ed.points[Math.floor(ed.points.length/2)]||ed.points[0];
+    const lab=(isSusp?"? ":"")+(e.label||"");                                    // semi-visible caption (as before)
+    if(lab.trim()){
+      const tw=measureWidth(lab,"edge",null)+8;
+      grp.appendChild(el("rect",{class:"labelplate",x:mid.x-tw/2,y:mid.y-16,width:tw,height:13,rx:3}));
+      grp.appendChild(el("text",{x:mid.x,y:mid.y-7,"text-anchor":"middle"},lab));
     }
-    g.appendChild(body);
-    g.appendChild(el("rect",{class:"kbar",x:0,y:0,width:4,height:h,fill:isSusp?"var(--faint)":KIND_COLOR(n.kind),rx:2}));
-    g.appendChild(el("text",{class:"label",x:14,y:small?25:24},(isSusp?"? ":"")+n.label));
-    if(!small)g.appendChild(el("text",{class:"kind",x:14,y:42,fill:isSusp?"var(--faint)":KIND_COLOR(n.kind)},isSusp?"BLACK BOX · "+n.kind:n.kind.toUpperCase()));
-    g.appendChild(el("text",{class:"nid",x:w-8,y:h-7,"text-anchor":"end"},n.display_id||""));
-    if(state.heat&&n.metrics&&typeof n.metrics.tangle_score==="number"&&!isSusp)
-      g.appendChild(el("text",{class:"difftag",x:w-46,y:14,fill:heatColor(n.metrics.tangle_score)},"♨ "+n.metrics.tangle_score.toFixed(2)));
-    if(isAdd)g.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--add)"},"+ NEW"));
-    if(isMod)g.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--mod)"},"~ MOD"));
-    if(n.expandable&&!isExpanded(n.id)&&(DOC.expanded_children||{})[n.id]){
-      const ex=el("g",{class:"expander",transform:`translate(${w-18},${h-16})`});
-      ex.appendChild(el("circle",{r:9}));ex.appendChild(el("text",{x:0,y:4,"text-anchor":"middle"},"+"));
-      ex.addEventListener("click",ev=>{ev.stopPropagation();state.expanded[n.id]=true;renderMap();});
-      g.appendChild(ex);
+    if(e.display_id){
+      const iw=measureWidth(e.display_id,"edge","eid")+8;
+      grp.appendChild(el("rect",{class:"labelplate",x:mid.x-iw/2,y:mid.y+1,width:iw,height:11,rx:2}));
+      grp.appendChild(el("text",{class:"eid",x:mid.x,y:mid.y+9,"text-anchor":"middle"},e.display_id));
     }
-    g.addEventListener("click",()=>selectNode(n.id));
-    worldMap.appendChild(g);
-  };
-  visibleNodes().forEach(n=>draw(n,false));
-  for(const pid in state.expanded){if(state.expanded[pid])(DOC.expanded_children[pid].nodes||[]).forEach(n=>draw(n,true));}
+    grp.addEventListener("mouseenter",ev=>startHover(e,ev));                      // highlight follows cursor
+    grp.addEventListener("mousemove",moveHover);
+    grp.addEventListener("mouseleave",clearEdgeLabel);
+    grp.addEventListener("click",ev=>{ev.stopPropagation();showEdgeCrossNav(e);});
+    worldMap.appendChild(grp);
+  });
+  const hotspots=new Set((DOC.advisory&&DOC.advisory.hotspots||[]).map(h=>h.node));
+  const ctx={litNodes,dimming,mods,addsN,addsE,hotspots};
+  L.drawNodes.forEach(({n})=>drawNode(n,g,ctx));
+  hoverLayer=el("g",{id:"hoverLayer"});worldMap.appendChild(hoverLayer);          // hover pops here (topmost)
+  if(L.needFit){L.needFit=false;fitMap(L);}
 }
 
 /* ============ SEQUENCE ============ */
-const svgSeq=document.getElementById("svgSeq");
-const SEQ={llW:150,gap:170,headH:44,topPad:20,rowH:34,leftPad:30};
+const svgSeq=document.getElementById("svgSeq"),worldSeq=document.getElementById("worldSeq");
+const SEQ={llMinW:110,headPad:16,headGap:46,headH:44,topPad:20,rowH:34,leftPad:30};
+let seqPL=null;   // per-render participant layout: {wById,cxById,totalW}
+function seqParticipantLayout(flow){
+  const wById={},cxById={};let x=SEQ.leftPad;
+  flow.participants.forEach(id=>{
+    const n=nodeById(id);
+    const nameW=measureWidth(n?n.label:id,"ll-head","llname");
+    const idW=n?measureWidth(n.display_id+" · "+n.kind,"ll-head","llid"):0;
+    const w=Math.max(SEQ.llMinW,Math.max(nameW,idW)+SEQ.headPad*2);
+    wById[id]=w;cxById[id]=x+w/2;x+=w+SEQ.headGap;
+  });
+  return{wById,cxById,totalW:x-SEQ.headGap+SEQ.leftPad};
+}
 function seqLayout(flow){
   const fd=flowDiffFor(flow.id);
   const removed=fd?new Set(fd.removed_step_seqs||[]):new Set();
@@ -391,41 +573,44 @@ function seqLayout(flow){
   for(const id in open)open[id].forEach(x=>{if(x.end===null)x.end=last-0.4;});
   return{rows,acts,fd};
 }
-function llX(flow,id){return SEQ.leftPad+flow.participants.indexOf(id)*SEQ.gap+SEQ.llW/2;}
+function llX(flow,id){return seqPL&&seqPL.cxById[id]!=null?seqPL.cxById[id]:SEQ.leftPad;}
 function renderSeq(){
-  svgSeq.innerHTML="";
-  const flow=state.flow;if(!flow)return;
+  worldSeq.innerHTML="";
+  const flow=state.flow;if(!flow){svgSeq.removeAttribute("viewBox");return;}
   const{rows,acts,fd}=seqLayout(flow);
-  const W=SEQ.leftPad*2+flow.participants.length*SEQ.gap;
+  seqPL=seqParticipantLayout(flow);
+  const W=seqPL.totalW;
   const H=SEQ.topPad+SEQ.headH+30+(rows.length+1)*SEQ.rowH+40;
   svgSeq.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  svgSeq.setAttribute("width",W*state.seqZoom);svgSeq.setAttribute("height",H*state.seqZoom);
+  svgSeq.setAttribute("preserveAspectRatio","xMidYMin meet");
+  if(seqFlowShown!==flow.id){viewSeq={x:0,y:0,k:1};seqFlowShown=flow.id;}
+  applyViewSeq();
   const rowY=i=>SEQ.topPad+SEQ.headH+30+i*SEQ.rowH;
   const cur=state.step;
   const curNodes=new Set();
   if(cur>=0)stepNodes(flow.steps[cur]).forEach(id=>curNodes.add(id));
   if(cur>=0){
     const idxs=rows.map((r,i)=>r.stepIdx===cur?i:-1).filter(i=>i>=0);
-    if(idxs.length)svgSeq.appendChild(el("rect",{class:"stepband",x:0,y:rowY(idxs[0])-SEQ.rowH*0.55,width:W,height:(idxs[idxs.length-1]-idxs[0]+1)*SEQ.rowH}));
+    if(idxs.length)worldSeq.appendChild(el("rect",{class:"stepband",x:0,y:rowY(idxs[0])-SEQ.rowH*0.55,width:W,height:(idxs[idxs.length-1]-idxs[0]+1)*SEQ.rowH}));
   }
   flow.participants.forEach(id=>{
     const x=llX(flow,id);
-    svgSeq.appendChild(el("line",{class:"lifeline",x1:x,y1:SEQ.topPad+SEQ.headH,x2:x,y2:H-20}));
+    worldSeq.appendChild(el("line",{class:"lifeline",x1:x,y1:SEQ.topPad+SEQ.headH,x2:x,y2:H-20}));
   });
   acts.forEach(a=>{
     const x=llX(flow,a.node)+a.depth*7-6;
     const y1=rowY(a.start)-8,y2=rowY(a.end)+8;
     const lit=cur>=0&&curNodes.has(a.node)&&rows.some((r,i)=>r.stepIdx===cur&&rowY(i)>=y1&&rowY(i)<=y2&&(r.a.from===a.node||r.a.to===a.node));
-    svgSeq.appendChild(el("rect",{class:"actbar"+(lit?" lit":""),x,y:y1,width:12,height:Math.max(10,y2-y1),rx:2}));
+    worldSeq.appendChild(el("rect",{class:"actbar"+(lit?" lit":""),x,y:y1,width:12,height:Math.max(10,y2-y1),rx:2}));
   });
   flow.participants.forEach(id=>{
-    const n=nodeById(id),x=llX(flow,id);
+    const n=nodeById(id),x=llX(flow,id),hw=seqPL.wById[id];
     const g=el("g",{class:"ll-head"+(curNodes.has(id)?" lit":"")});
-    g.appendChild(el("rect",{x:x-SEQ.llW/2,y:SEQ.topPad,width:SEQ.llW,height:SEQ.headH,rx:7,stroke:KIND_COLOR(n.kind)}));
+    g.appendChild(el("rect",{x:x-hw/2,y:SEQ.topPad,width:hw,height:SEQ.headH,rx:7,stroke:KIND_COLOR(n.kind)}));
     g.appendChild(el("text",{class:"llname",x,y:SEQ.topPad+19,"text-anchor":"middle"},n.label));
     g.appendChild(el("text",{class:"llid",x,y:SEQ.topPad+34,"text-anchor":"middle"},n.display_id+" · "+n.kind));
     g.addEventListener("click",()=>selectNode(id));
-    svgSeq.appendChild(g);
+    worldSeq.appendChild(g);
   });
   rows.forEach((r,i)=>{
     const a=r.a,y=rowY(i);
@@ -443,12 +628,12 @@ function renderSeq(){
       setView("map");syncPlaybar();renderAll();
       if(a.edge){const e=DOC.edges.find(x=>x.id===a.edge);if(e)showEdgeCrossNav(e);}
     });
-    svgSeq.appendChild(g);
+    worldSeq.appendChild(g);
   });
   if(flow.preface&&flow.preface.length)
-    svgSeq.appendChild(el("text",{x:SEQ.leftPad,y:rowY(0)-18,fill:"var(--faint)","font-size":"9px","font-family":"var(--mono)"},"· контекст ·"));
+    worldSeq.appendChild(el("text",{x:SEQ.leftPad,y:rowY(0)-18,fill:"var(--faint)","font-size":"9px","font-family":"var(--mono)"},"· context ·"));
   if(fd&&fd.note){
-    svgSeq.appendChild(el("text",{class:"ghostnote",x:SEQ.leftPad,y:H-8},"diff: "+fd.note));
+    worldSeq.appendChild(el("text",{class:"ghostnote",x:SEQ.leftPad,y:H-8},"diff: "+fd.note));
   }
 }
 
@@ -471,6 +656,12 @@ function selectNode(id){
       (m.flows_count!=null?`flows_count ${m.flows_count}<br>`:"")+
       (m.change_coupling!=null?`change_coupling ${m.change_coupling}<br>`:"")+
       (m.tangle_score!=null?`tangle_score <b style="color:${heatColor(m.tangle_score)}">${m.tangle_score}</b>`:"")+`</div>`;}
+  const hot=(DOC.advisory&&DOC.advisory.hotspots||[]).find(h=>h.node===n.display_id||h.node===id);
+  if(hot){
+    html+=`<h2>♨ hotspot (advisory)</h2><div class="np-ev" style="color:var(--mod);border-left-color:var(--mod)">${esc(hot.recommendation)}</div>`;
+    if(hot.supporting_metrics&&hot.supporting_metrics.length)
+      html+=`<div class="metrics">${hot.supporting_metrics.map(esc).join("<br>")}</div>`;
+  }
   html+=`<h2>source_refs</h2>`;
   (n.source_refs||[]).forEach(r=>{html+=`<div class="refitem" data-ref="${esc(r)}">${esc(r)}</div>`;});
   if(state.diff&&mods.includes(id)){const d=DOC.diffs.find(d=>d.op==="modify_node"&&d.target===id);
@@ -480,6 +671,14 @@ function selectNode(id){
   html+=`<div id="codeSlot"></div>`;
   rp.innerHTML=html;
   rp.querySelectorAll(".refitem").forEach(x=>x.addEventListener("click",()=>showCode(x.dataset.ref)));
+}
+function nodeIdFromRef(ref){const n=DOC.nodes.find(n=>n.id===ref||n.display_id===ref);return n?n.id:ref;}
+function focusMapNode(id){
+  setView("map");
+  selectNode(id);                       // selects + renders (view transform preserved)
+  const L=computeMapLayout(),nd=L.g.node(id);if(!nd)return;
+  const VB_W=1420,VB_H=780,k=Math.max(0.9,Math.min(1.6,view.k));
+  view.k=k;view.x=VB_W/2-nd.x*k;view.y=VB_H/2-nd.y*k;applyView();
 }
 function showEdgeCrossNav(e){
   const isSusp=e.kind==="suspected_influence";
@@ -494,7 +693,7 @@ function showEdgeCrossNav(e){
       if(stepEdges(st).includes(e.id)){found=true;
         html+=`<div class="xnav" data-flow="${f.id}" data-step="${si}">▶ ${esc(f.title)} · step ${st.seq}</div>`;}
     }));
-    if(!found)html+=`<div class="empty">не бере участі в жодному відомому флоу</div>`;
+    if(!found)html+=`<div class="empty">not part of any known flow</div>`;
   }
   rp.innerHTML=html;
   rp.querySelectorAll(".xnav").forEach(x=>x.addEventListener("click",()=>{
@@ -504,14 +703,57 @@ function showEdgeCrossNav(e){
     renderFlows();setView("seq");syncPlaybar();renderAll();
   }));
 }
-function showCode(ref){
+function renderCodeBlock(block){
+  const slot=document.getElementById("codeSlot");
+  const host=slot||rp;
+  if(slot)slot.innerHTML=block;else rp.innerHTML=`<h2>Inspector</h2>`+block;
+  host.querySelectorAll(".ideopen").forEach(b=>b.addEventListener("click",()=>openInIde(b.dataset.file,+b.dataset.line)));
+}
+async function openInIde(file,line){
+  const root=DOC.meta&&DOC.meta.source_root;if(!root)return;
+  try{await fetch(`/open?root=${encodeURIComponent(root)}&file=${encodeURIComponent(file)}&line=${line}`);}catch(e){}
+}
+function openBtn(file,line){
+  const root=DOC.meta&&DOC.meta.source_root;
+  return root?`<div class="btnrow"><button class="ideopen" data-file="${esc(file)}" data-line="${line}">Open in IDE ↗</button></div>`:"";
+}
+const HL_EXT={py:"python",ts:"typescript",tsx:"typescript",js:"javascript",jsx:"javascript",mjs:"javascript",java:"java",php:"php",go:"go",rb:"ruby",rs:"rust",json:"json",yml:"yaml",yaml:"yaml",sql:"sql",sh:"bash",bash:"bash",c:"c",h:"c",cpp:"cpp",hpp:"cpp",cc:"cpp",cs:"csharp",kt:"kotlin",kts:"kotlin",swift:"swift",scala:"scala",lua:"lua",css:"css",scss:"scss",less:"less",html:"xml",xml:"xml",md:"markdown",dockerfile:"dockerfile"};
+function hlLang(file){
+  const ext=(String(file).split(".").pop()||"").toLowerCase();
+  const lang=HL_EXT[ext];
+  return (lang&&window.hljs&&hljs.getLanguage(lang))?lang:null;
+}
+function hlLine(text,lang){
+  if(lang&&window.hljs){try{return hljs.highlight(text,{language:lang,ignoreIllegal:true}).value;}catch(e){}}
+  return esc(text);
+}
+function codeRow(ln,text,lang,lit){
+  const row=`<span class="lnum">${ln}</span>${hlLine(text,lang)||" "}`;
+  return lit?`<span class="hl">${row}</span>`:row;
+}
+async function showCode(ref){
+  const root=DOC.meta&&DOC.meta.source_root;
+  const m=/^(.*?):(\d+)(?:-(\d+))?$/.exec(ref||"");
+  // 1) live read from the analyzed repo when source_root is set
+  if(root&&m){
+    const file=m[1],s=+m[2],e=m[3]?+m[3]:s,lang=hlLang(file);
+    try{
+      const r=await fetch(`/source?root=${encodeURIComponent(root)}&ref=${encodeURIComponent(ref)}`);
+      if(r.ok){
+        const d=await r.json();
+        const body=d.lines.map((l,i)=>{const ln=d.start+i;return codeRow(ln,l,lang,ln>=d.hlStart&&ln<=d.hlEnd);}).join("\n");
+        renderCodeBlock(`<h2 class="codehead">code · ${esc(file)}:${s}${e!==s?"-"+e:""}</h2>${openBtn(file,s)}<pre class="code">${body}</pre>`);
+        return;
+      }
+    }catch(err){}
+  }
+  // 2) fallback: embedded code_snippets
   const cs=DOC.code_snippets||{};
   let key=cs[ref]?ref:Object.keys(cs).find(k=>ref.includes(k.split(/\.(java|ts|py|php)/)[0])||k.includes(ref.split("/").pop().split(/\.(java|ts|py|php)/)[0]));
   const snip=key?cs[key]:null;
-  const body=snip?snip.text.split("\n").map((l,i)=>(snip.hl||[]).includes(i)?`<span class="hl">${esc(l)||" "}</span>`:esc(l)).join("\n"):"// немає снапшоту; реальна версія читає файл з репо";
-  const block=`<h2>code · ${esc(key||ref)}</h2><pre class="code">${body}</pre>`;
-  const slot=document.getElementById("codeSlot");
-  if(slot)slot.innerHTML=block;else rp.innerHTML=`<h2>Inspector</h2>`+block;
+  const lang=hlLang(key||(m&&m[1])||ref);
+  const body=snip?snip.text.split("\n").map((l,i)=>{const lit=(snip.hl||[]).includes(i);const code=hlLine(l,lang)||" ";return lit?`<span class="hl">${code}</span>`:code;}).join("\n"):"// no snapshot; set meta.source_root for live reads from the repo";
+  renderCodeBlock(`<h2 class="codehead">code · ${esc(key||ref)}</h2>${m?openBtn(m[1],+m[2]):""}<pre class="code">${body}</pre>`);
 }
 
 /* ============ sidebar ============ */
@@ -520,8 +762,9 @@ function renderFlows(){
   flowList.innerHTML="";
   DOC.flows.forEach(f=>{
     const d=document.createElement("div");
-    d.className="flow"+(f.kind==="bug_path"?" bug":"")+(state.flow&&state.flow.id===f.id?" active":"");
-    d.innerHTML=`<div class="name">${esc(f.title)}</div><div class="kindtag">${f.kind}${f.verified_by?" · "+f.verified_by:""}</div>`;
+    d.className="flow"+(f.kind==="bug_path"?" bug":"")+(f.kind==="failure_path"?" failure":"")+(state.flow&&state.flow.id===f.id?" active":"");
+    const kindLabel={happy_path:"happy path",failure_path:"failure handling (by design)",bug_path:"bug reproduction",edge_case:"edge case",proposed:"proposed"}[f.kind]||f.kind;
+    d.innerHTML=`<div class="name">${esc(f.title)}</div><div class="kindtag">${kindLabel}${f.verified_by?" · "+f.verified_by:""}</div>`;
     d.addEventListener("click",()=>{
       state.flow=f;state.step=-1;stopAuto();hidePlaybar();
       document.getElementById("tabSeq").disabled=false;
@@ -578,17 +821,9 @@ function setView(v){
   document.getElementById("tabSeq").classList.toggle("active",v==="seq");
   document.getElementById("paneMap").classList.toggle("active",v==="map");
   document.getElementById("paneSeq").classList.toggle("active",v==="seq");
-  document.getElementById("seqZoomCtl").style.display=v==="seq"?"flex":"none";
 }
 document.getElementById("tabMap").addEventListener("click",()=>{setView("map");renderAll();});
 document.getElementById("tabSeq").addEventListener("click",()=>{if(state.flow){setView("seq");renderAll();}});
-document.getElementById("zIn").addEventListener("click",()=>{state.seqZoom=Math.min(3,state.seqZoom*1.2);renderSeq();});
-document.getElementById("zOut").addEventListener("click",()=>{state.seqZoom=Math.max(.35,state.seqZoom/1.2);renderSeq();});
-document.getElementById("zReset").addEventListener("click",()=>{state.seqZoom=1;renderSeq();});
-document.getElementById("seqScroll").addEventListener("wheel",e=>{
-  if(!e.ctrlKey)return;e.preventDefault();
-  state.seqZoom=Math.min(3,Math.max(.35,state.seqZoom*(e.deltaY<0?1.1:0.9)));renderSeq();
-},{passive:false});
 
 /* ============ toggles ============ */
 const dt=document.getElementById("diffToggle"),ht=document.getElementById("heatToggle");
@@ -602,7 +837,7 @@ function toggleDiff(){
       const label=d.op==="add_node"?("+ ADD "+d.node.label+" ("+d.node.display_id+")"):d.op==="add_edge"?("+ EDGE "+d.edge.display_id):((d.op.startsWith("remove")?"− ":"~ ")+d.op.toUpperCase()+" "+(d.target||""));
       return `<div class="diffcard${isMod?" mod":""}"><span class="op">${esc(label)}</span><div class="rat">${esc(d.rationale)}</div></div>`;}).join("")+
       (DOC.advisory&&DOC.advisory.summary?`<h2>advisory</h2><div class="np-sum">${esc(DOC.advisory.summary)}</div>`:"")+
-      (DOC.flow_diffs?`<h2>flow diffs</h2>`+DOC.flow_diffs.map(fd=>`<div class="diffcard mod"><span class="op">~ FLOW ${esc(fd.flow_id)}</span><div class="rat">${esc(fd.note||"")} ${fd.removed_step_seqs?("· зникають степи: "+fd.removed_step_seqs.join(", ")):""}</div></div>`).join(""):"");
+      (DOC.flow_diffs?`<h2>flow diffs</h2>`+DOC.flow_diffs.map(fd=>`<div class="diffcard mod"><span class="op">~ FLOW ${esc(fd.flow_id)}</span><div class="rat">${esc(fd.note||"")} ${fd.removed_step_seqs?("· steps removed: "+fd.removed_step_seqs.join(", ")):""}</div></div>`).join(""):"");
   }
 }
 function toggleHeat(){
@@ -611,7 +846,8 @@ function toggleHeat(){
   renderAll();
   if(state.heat&&DOC.advisory&&DOC.advisory.hotspots){
     rp.innerHTML=`<h2>Hotspots (advisory over metrics)</h2>`+DOC.advisory.hotspots.map(h=>
-      `<div class="diffcard mod"><span class="op">♨ ${esc(h.node)}</span><div class="rat">${esc(h.recommendation)}</div></div>`).join("");
+      `<div class="diffcard mod hotcard" data-node="${esc(h.node)}"><span class="op">♨ ${esc(h.node)} · focus →</span><div class="rat">${esc(h.recommendation)}</div></div>`).join("");
+    rp.querySelectorAll(".hotcard").forEach(c=>c.addEventListener("click",()=>focusMapNode(nodeIdFromRef(c.dataset.node))));
   }
 }
 dt.addEventListener("click",toggleDiff);
@@ -620,21 +856,125 @@ ht.addEventListener("click",toggleHeat);
 ht.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleHeat();}});
 
 /* ============ map pan & zoom ============ */
+// cursor-anchored zoom: keep the point under the cursor fixed while scaling.
+// view.{x,y,k} live in the svg viewBox (user) space, same space getScreenCTM maps to.
+function zoomAround(view,svgEl,clientX,clientY,factor,min,max,apply){
+  const nk=Math.min(max,Math.max(min,view.k*factor));
+  const f=nk/view.k;if(f===1)return;
+  const ctm=svgEl.getScreenCTM();if(!ctm)return;
+  const pt=svgEl.createSVGPoint();pt.x=clientX;pt.y=clientY;
+  const u=pt.matrixTransform(ctm.inverse());
+  view.x=f*view.x+(1-f)*u.x;view.y=f*view.y+(1-f)*u.y;view.k=nk;apply();
+}
 let view={x:0,y:0,k:1},drag=null;
 function applyView(){worldMap.setAttribute("transform",`translate(${view.x},${view.y}) scale(${view.k})`);}
-svgMap.addEventListener("mousedown",e=>{if(e.target===svgMap){drag={x:e.clientX,y:e.clientY};svgMap.classList.add("panning");}});
-window.addEventListener("mousemove",e=>{if(drag){view.x+=e.clientX-drag.x;view.y+=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY};applyView();}});
+svgMap.addEventListener("mousedown",e=>{if(e.target===svgMap){e.preventDefault();window.getSelection().removeAllRanges();drag={x:e.clientX,y:e.clientY};svgMap.classList.add("panning");}});
+window.addEventListener("mousemove",e=>{if(drag){const c=svgMap.getScreenCTM();const sx=c?c.a:1,sy=c?c.d:1;view.x+=(e.clientX-drag.x)/sx;view.y+=(e.clientY-drag.y)/sy;drag={x:e.clientX,y:e.clientY};applyView();}});
 window.addEventListener("mouseup",()=>{drag=null;svgMap.classList.remove("panning");});
-svgMap.addEventListener("wheel",e=>{e.preventDefault();const f=e.deltaY<0?1.1:0.9;view.k=Math.min(2.5,Math.max(.4,view.k*f));applyView();},{passive:false});
+svgMap.addEventListener("wheel",e=>{e.preventDefault();zoomAround(view,svgMap,e.clientX,e.clientY,e.deltaY<0?1.1:0.9,.25,4,applyView);},{passive:false});
+
+/* ============ sequence pan & zoom (mirrors map) ============ */
+let viewSeq={x:0,y:0,k:1},dragSeq=null,seqFlowShown=null;
+function applyViewSeq(){worldSeq.setAttribute("transform",`translate(${viewSeq.x},${viewSeq.y}) scale(${viewSeq.k})`);}
+svgSeq.addEventListener("mousedown",e=>{if(e.target===svgSeq){e.preventDefault();window.getSelection().removeAllRanges();dragSeq={x:e.clientX,y:e.clientY};svgSeq.classList.add("panning");}});
+window.addEventListener("mousemove",e=>{if(dragSeq){const c=svgSeq.getScreenCTM();const sx=c?c.a:1,sy=c?c.d:1;viewSeq.x+=(e.clientX-dragSeq.x)/sx;viewSeq.y+=(e.clientY-dragSeq.y)/sy;dragSeq={x:e.clientX,y:e.clientY};applyViewSeq();}});
+window.addEventListener("mouseup",()=>{dragSeq=null;svgSeq.classList.remove("panning");});
+// dynamic max zoom: enough to bring ~2 average lifeline heads across the pane
+function seqMaxZoom(){
+  if(!seqPL||!seqPL.wById)return 4;
+  const ws=Object.values(seqPL.wById);if(!ws.length)return 4;
+  const avg=ws.reduce((a,b)=>a+b,0)/ws.length;
+  const S=2*avg+SEQ.headGap;                       // content span (~2 heads) to fill
+  const ctm=svgSeq.getScreenCTM();if(!ctm||!ctm.a)return 4;
+  const paneW=svgSeq.getBoundingClientRect().width||1;
+  return Math.max(1.5,paneW/(S*ctm.a));
+}
+svgSeq.addEventListener("wheel",e=>{e.preventDefault();zoomAround(viewSeq,svgSeq,e.clientX,e.clientY,e.deltaY<0?1.1:0.9,.12,seqMaxZoom(),applyViewSeq);},{passive:false});
+
+/* ============ background particles (3D depth field) ============ */
+/* Starfield-style parallax: each particle drifts toward the camera on a z axis,
+   projected with perspective so it grows + spreads from center → real depth.
+   Sits behind the SVG map (transparent), never intercepts clicks. */
+(function particleFX(){
+  const canvas=document.getElementById("fx");if(!canvas)return;
+  const ctx=canvas.getContext("2d");if(!ctx)return;
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const wrap=document.querySelector(".canvaswrap");
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const TINT=[150,165,190];                       // one neutral cool-grey, no hue variety
+  const N=reduce?60:110,FOCAL=520,DEPTH=900;
+  let W=0,H=0,parts=[],mx=0,my=0,tx=0,ty=0,last=0,raf=null;
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  function spawn(fromFar){
+    return {x:rnd(-1,1),y:rnd(-1,1),z:fromFar?1:rnd(0.05,1),
+      tw:rnd(0,Math.PI*2),tws:rnd(0.5,1.4)};
+  }
+  function resize(){
+    const r=wrap.getBoundingClientRect();W=r.width;H=r.height;
+    canvas.width=Math.max(1,W*DPR);canvas.height=Math.max(1,H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  function frame(t){
+    const dt=Math.min(50,t-last||16);last=t;
+    tx+=(mx-tx)*0.05;ty+=(my-ty)*0.05;
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2,cy=H/2,half=Math.min(W,H)*0.62,c=TINT;
+    for(const p of parts){
+      p.z-=dt*0.000030;
+      if(p.z<=0.04){Object.assign(p,spawn(true));continue;}
+      p.tw+=dt*0.001*p.tws;
+      const s=FOCAL/(FOCAL+p.z*DEPTH);
+      const px=cx+(p.x*half+tx*40*(1-p.z))*s;
+      const py=cy+(p.y*half+ty*40*(1-p.z))*s;
+      const r=Math.max(0.5,s*2.6);
+      // envelope: fade in from far (z≈1) AND fade out before the near cull (z≈0.04)
+      // so particles never pop/blink at either end
+      const nearFade=Math.min(1,(p.z-0.04)/0.14);
+      const a=Math.min(1,(1-p.z)*1.1)*nearFade*0.22*(0.7+0.3*Math.sin(p.tw));  // dim, low-contrast
+      if(a<=0.01)continue;
+      const rad=r*3.2;
+      const g=ctx.createRadialGradient(px,py,0,px,py,rad);
+      g.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${a})`);
+      g.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,rad,0,6.283);ctx.fill();
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  wrap.addEventListener("mousemove",e=>{
+    const r=wrap.getBoundingClientRect();
+    mx=((e.clientX-r.left)/r.width-0.5)*2;my=((e.clientY-r.top)/r.height-0.5)*2;
+  });
+  wrap.addEventListener("mouseleave",()=>{mx=0;my=0;});
+  window.addEventListener("resize",()=>{if(raf!==null||on)resize();});
+  function start(){
+    resize();parts=Array.from({length:N},()=>spawn(false));last=0;
+    if(reduce){frame(16);cancelAnimationFrame(raf);raf=null;}   // one static depth frame
+    else if(raf===null)raf=requestAnimationFrame(frame);
+  }
+  function stop(){if(raf!==null){cancelAnimationFrame(raf);raf=null;}ctx.clearRect(0,0,W,H);}
+  // enable/disable toggle, persisted
+  const btn=document.getElementById("fxToggle");
+  let on=localStorage.getItem("pce_fx")!=="off";
+  function apply(){
+    canvas.style.display=on?"block":"none";
+    btn.classList.toggle("on",on);btn.classList.toggle("off",!on);
+    btn.textContent=on?"✦ visuals":"✧ visuals off";
+    if(on)start();else stop();
+  }
+  btn&&btn.addEventListener("click",()=>{on=!on;localStorage.setItem("pce_fx",on?"on":"off");apply();});
+  apply();
+})();
 
 /* ============ init ============ */
 function renderAll(){renderMap();renderSeq();}
 function init(){
+  NB.clear();_layout=null;_layoutSig=null;
   document.getElementById("metaTitle").textContent=DOC.meta.title;
   document.getElementById("metaStamp").textContent=(DOC.meta.intent?DOC.meta.intent+" · ":"")+(DOC.meta.commit_hash?DOC.meta.commit_hash.slice(0,8):"")+(DOC.meta.generated_at?" · "+DOC.meta.generated_at.slice(0,16).replace("T"," "):"");
   document.getElementById("hintBox").innerHTML=
-    "display_id (N2, E3, BB1) — спільна система координат з агентом: «поясни E3», «дослідь BB1».<br>"+
+    "display_id (N2, E3, BB1) — shared coordinate system with the agent: \"explain E3\", \"investigate BB1\".<br>"+
     (DOC.meta.scan_coverage?("scanned: "+(DOC.meta.scan_coverage.scanned_sources||[]).join(", ")+"<br>not scanned: "+(DOC.meta.scan_coverage.not_scanned||[]).join(", ")):"");
+  if(DOC.flows&&DOC.flows.length){state.flow=DOC.flows[0];document.getElementById("tabSeq").disabled=false;}
   renderFlows();renderBBs();renderAll();
 }
 boot();
