@@ -10,6 +10,18 @@
       "source": "./memory-system-plugin",
       "version": "0.2.0",
       "description": "Project memory and task-journal workflow with on-demand index generation."
+    },
+    {
+      "name": "ticket-resolver",
+      "source": "./ticket-resolver-plugin",
+      "version": "0.1.0",
+      "description": "JIRA-driven bug-fix orchestrator: analyze → implement → review → verify → PR, human-gated."
+    },
+    {
+      "name": "codebase-explainer",
+      "source": "./codebase-explainer",
+      "version": "0.4.0",
+      "description": "Protocol Codebase Explainer (PCE): agent-generated, task-scoped architecture maps with structural and behavioral projections, black-box perimeter tracking, impact analysis and a local viewer."
     }
   ]
 }

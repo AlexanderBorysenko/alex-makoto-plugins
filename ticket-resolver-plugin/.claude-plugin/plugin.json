@@ -1,0 +1,8 @@
+{
+  "name": "ticket-resolver",
+  "version": "0.1.0",
+  "description": "JIRA-driven bug-fix orchestrator: analyze → (reproduce) → implement → review → verify → acceptance → PR, human-gated. Durable per-ticket state, resumable across sessions, with a living local run/test runbook.",
+  "author": {
+    "name": "alex.borysenko"
+  }
+}

@@ -1,0 +1,237 @@
+{
+  "protocol_version": "0.4",
+  "meta": {
+    "title": "checkout-service · bug #4821: duplicate charge on payment retry",
+    "intent": "debug",
+    "task": "Reproduce and fix duplicate Stripe charges reported by finance",
+    "repo": "acme/checkout-service",
+    "generated_at": "2026-07-08T10:00:00Z",
+    "commit_hash": "a1b2c3d4e5f60718",
+    "analysis_scope": "Checkout/payment path of checkout-service; consumers of order.events included as peripheral; reporting and admin tooling out of scope.",
+    "scan_coverage": {
+      "scanned_sources": ["code index (call graph)", "db migrations", "spring annotations", "rmq bindings config", "environment manifest"],
+      "not_scanned": ["git change-coupling (on request)", "manual prod changes", "external systems without code in repo"]
+    },
+    "environment_manifest_ref": "manifest/ENVIRONMENT.md"
+  },
+
+  "nodes": [
+    { "id": "ctl_checkout", "display_id": "N1", "kind": "controller", "label": "CheckoutController",
+      "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 60, "y": 330}, "expandable": false,
+      "summary": "REST-вхід чекаута. Приймає POST /checkout, валідує DTO, делегує в OrderService.",
+      "source_refs": ["src/main/java/com/acme/checkout/api/CheckoutController.java:31-74"],
+      "metrics": {"fan_in": 0, "fan_out": 1, "flows_count": 1, "tangle_score": 0.08} },
+
+    { "id": "svc_order", "display_id": "N2", "kind": "service", "label": "OrderService",
+      "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 340, "y": 330}, "expandable": true,
+      "summary": "Оркеструє створення замовлення. Транзакційна межа тут — і тут же баг: ручний retry оплати поверх retry-контуру PaymentService.",
+      "source_refs": ["src/main/java/com/acme/checkout/order/OrderService.java:1-240"],
+      "metrics": {"fan_in": 1, "fan_out": 3, "flows_count": 2, "change_coupling": 0.62, "tangle_score": 0.71} },
+
+    { "id": "svc_payment", "display_id": "N3", "kind": "service", "label": "PaymentService",
+      "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 660, "y": 180}, "expandable": false,
+      "summary": "Обгортка над платіжним шлюзом: charge() + власний retry (3 спроби, backoff) на timeout. Не знає, чи попередня спроба пройшла на боці шлюзу.",
+      "source_refs": ["src/main/java/com/acme/checkout/payment/PaymentService.java:18-96"],
+      "metrics": {"fan_in": 1, "fan_out": 1, "flows_count": 2, "tangle_score": 0.35} },
+
+    { "id": "gw_stripe", "display_id": "N4", "kind": "gateway", "label": "StripeGateway",
+      "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 940, "y": 180}, "expandable": false,
+      "summary": "НАШ HTTP-клієнт до Stripe. Timeout 5s — наше клієнтське обмеження (HttpRequest.timeout), не страйпівське: Stripe може дообробити charge після нашої відмови. Idempotency key не передається.",
+      "source_refs": ["src/main/java/com/acme/checkout/payment/StripeGateway.java:22-61"],
+      "metrics": {"fan_in": 1, "fan_out": 0, "flows_count": 2, "tangle_score": 0.18} },
+
+    { "id": "repo_order", "display_id": "N5", "kind": "repo", "label": "OrderRepository",
+      "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 660, "y": 470}, "expandable": false,
+      "summary": "Spring Data JPA. Order: CREATED → PAID → CONFIRMED.",
+      "source_refs": ["src/main/java/com/acme/checkout/order/OrderRepository.java:1-20"],
+      "metrics": {"fan_in": 1, "fan_out": 0, "flows_count": 2, "tangle_score": 0.12} },
+
+    { "id": "q_events", "display_id": "N6", "kind": "queue", "label": "RabbitMQ · order.events",
+      "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 940, "y": 470}, "expandable": false,
+      "summary": "Topic exchange. OrderService лише публікує (fire-and-forget); далі повідомлення розходяться по біндінгах до N7/N8.",
+      "source_refs": ["src/main/java/com/acme/checkout/messaging/OrderEventPublisher.java:14-40"],
+      "manifest_ref": "manifest/ENVIRONMENT.md#1",
+      "metrics": {"fan_in": 1, "fan_out": 2, "flows_count": 1, "tangle_score": 0.22} },
+
+    { "id": "svc_notif", "display_id": "N7", "kind": "consumer", "label": "NotificationService",
+      "resolution": "confirmed", "scope": "peripheral", "pos": {"x": 1200, "y": 400}, "expandable": false,
+      "summary": "Консюмер order.paid → email/SMS клієнту. Окремий деплоймент, живе своїм життям.",
+      "source_refs": ["notification-service/src/.../OrderPaidListener.java:20-45"],
+      "metrics": {"fan_in": 1, "fan_out": 0, "flows_count": 1, "tangle_score": 0.1} },
+
+    { "id": "svc_wh", "display_id": "N8", "kind": "consumer", "label": "WarehouseService",
+      "resolution": "confirmed", "scope": "peripheral", "pos": {"x": 1200, "y": 540}, "expandable": false,
+      "summary": "Консюмер order.paid: підтверджує резерв стоку, ставить у чергу на пакування.",
+      "source_refs": ["warehouse-service/src/.../OrderPaidHandler.java:18-52"],
+      "metrics": {"fan_in": 1, "fan_out": 0, "flows_count": 1, "tangle_score": 0.1} },
+
+    { "id": "bb_trigger", "display_id": "BB1", "kind": "db_trigger", "label": "trigger on orders?",
+      "resolution": "suspected", "scope": "peripheral", "pos": {"x": 340, "y": 590}, "expandable": false,
+      "relevance": "medium",
+      "summary": "Broad-scan знайшов зачіпку: можливий тригер на таблиці orders, який реагує на зміну статусу. Deep-dive не проводився (perimeter gate).",
+      "evidence": "migrations/V13__audit.sql:22 — CREATE TRIGGER orders_status_audit AFTER UPDATE ON orders",
+      "source_refs": ["migrations/V13__audit.sql:20-31"] },
+
+    { "id": "bb_retry_svc", "display_id": "BB2", "kind": "external_system", "label": "RMQ retry-mode service?",
+      "resolution": "dismissed", "scope": "peripheral", "pos": {"x": 1200, "y": 660}, "expandable": false,
+      "summary": "Підозра на сервіс, що перемикає черги в retry-режим (manifest #1). Перевірено: у його конфігу черги order.events немає.",
+      "evidence": "DISMISSED: retry-mode-service config lists queues [billing.*, invoice.*] only — order.events not affected. Checked 2026-07-08.",
+      "source_refs": [] }
+  ],
+
+  "expanded_children": {
+    "svc_order": {
+      "frame": {"x": 290, "y": 190, "w": 300, "h": 400},
+      "port_map": { "e1": "m_place", "e2": "m_pay", "e4": ["m_place", "m_confirm"], "e5": "m_confirm" },
+      "nodes": [
+        { "id": "m_place", "display_id": "N2.1", "kind": "internal", "label": "placeOrder()",
+          "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 365, "y": 230},
+          "summary": "@Transactional точка входу: Order(CREATED), save, reserveStock, pay().",
+          "source_refs": ["OrderService.java:52-88"] },
+        { "id": "m_pay", "display_id": "N2.2", "kind": "internal", "label": "pay()",
+          "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 365, "y": 350},
+          "summary": "charge() + ручний retry у catch — подвійний retry-контур.",
+          "source_refs": ["OrderService.java:120-158"] },
+        { "id": "m_confirm", "display_id": "N2.3", "kind": "internal", "label": "confirmOrder()",
+          "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 365, "y": 470},
+          "summary": "PAID, save, publish OrderPaid.",
+          "source_refs": ["OrderService.java:170-196"] }
+      ],
+      "edges": [
+        { "id": "ie1", "display_id": "E2.a", "from": "m_place", "to": "m_pay", "kind": "sync_call", "label": "" },
+        { "id": "ie2", "display_id": "E2.b", "from": "m_pay", "to": "m_confirm", "kind": "sync_call", "label": "on success" }
+      ]
+    }
+  },
+
+  "edges": [
+    { "id": "e1", "display_id": "E1", "from": "ctl_checkout", "to": "svc_order", "kind": "sync_call", "label": "placeOrder(dto)" },
+    { "id": "e2", "display_id": "E2", "from": "svc_order", "to": "svc_payment", "kind": "sync_call", "label": "charge(orderId, amount)" },
+    { "id": "e3", "display_id": "E3", "from": "svc_payment", "to": "gw_stripe", "kind": "sync_call", "label": "POST /v1/charges · timeout 5s (ours)" },
+    { "id": "e4", "display_id": "E4", "from": "svc_order", "to": "repo_order", "kind": "sync_call", "label": "save(order)" },
+    { "id": "e5", "display_id": "E5", "from": "svc_order", "to": "q_events", "kind": "async_msg", "label": "publish OrderPaid" },
+    { "id": "e6", "display_id": "E6", "from": "q_events", "to": "svc_notif", "kind": "async_msg", "label": "binding: order.paid" },
+    { "id": "e7", "display_id": "E7", "from": "q_events", "to": "svc_wh", "kind": "async_msg", "label": "binding: order.paid" },
+    { "id": "e8", "display_id": "E8", "from": "bb_trigger", "to": "repo_order", "kind": "suspected_influence", "label": "on UPDATE orders?",
+      "evidence": "trigger declared AFTER UPDATE ON orders — може спрацьовувати на кожен save(PAID)" }
+  ],
+
+  "flows": [
+    { "id": "flow_happy", "title": "Checkout · happy path", "kind": "happy_path",
+      "description": "Успішний чекаут: синхронний платіжний ланцюг туди-назад, PAID, асинхронний розліт події.",
+      "participants": ["ctl_checkout", "svc_order", "svc_payment", "gw_stripe", "repo_order", "q_events", "svc_notif", "svc_wh"],
+      "entry": "ctl_checkout",
+      "verified_by": "static_and_run",
+      "steps": [
+        { "seq": 1, "explanation": "N1 приймає POST /checkout і синхронно викликає N2.placeOrder(). Відкривається транзакція.",
+          "code_ref": "CheckoutController.java:41-52",
+          "arrows": [ {"from": "ctl_checkout", "to": "svc_order", "type": "call", "label": "placeOrder(dto)", "edge": "e1"} ] },
+        { "seq": 2, "explanation": "Order(CREATED) зберігається в N5 ще ДО оплати.",
+          "code_ref": "OrderService.java:60-71",
+          "arrows": [ {"from": "svc_order", "to": "repo_order", "type": "call", "label": "save(CREATED)", "edge": "e4"},
+                      {"from": "repo_order", "to": "svc_order", "type": "return", "label": "order", "edge": "e4"} ] },
+        { "seq": 3, "explanation": "Платіжний ланцюг вглиб: N2 → N3 → N4. Activation bars вкладаються — це call stack.",
+          "code_ref": "OrderService.java:126-131",
+          "arrows": [ {"from": "svc_order", "to": "svc_payment", "type": "call", "label": "charge(orderId, amount)", "edge": "e2"},
+                      {"from": "svc_payment", "to": "gw_stripe", "type": "call", "label": "POST /v1/charges", "edge": "e3"} ] },
+        { "seq": 4, "explanation": "ПОВЕРНЕННЯ: ChargeResult розкручує стек назад N4 → N3 → N2 (return value, не окреме ребро).",
+          "code_ref": "StripeGateway.java:30-44",
+          "arrows": [ {"from": "gw_stripe", "to": "svc_payment", "type": "return", "label": "ChargeResult(ok)", "edge": "e3"},
+                      {"from": "svc_payment", "to": "svc_order", "type": "return", "label": "PaymentResult(ok)", "edge": "e2"} ] },
+        { "seq": 5, "explanation": "confirmOrder(): статус → PAID, save у N5. Увага: якщо BB1 підтвердиться — саме тут спрацьовує тригер.",
+          "code_ref": "OrderService.java:170-196",
+          "arrows": [ {"from": "svc_order", "to": "repo_order", "type": "call", "label": "save(PAID)", "edge": "e4"},
+                      {"from": "repo_order", "to": "svc_order", "type": "return", "label": "", "edge": "e4"} ] },
+        { "seq": 6, "explanation": "Публікація OrderPaid — fire-and-forget, повернення немає і не буде.",
+          "code_ref": "OrderEventPublisher.java:22-35",
+          "arrows": [ {"from": "svc_order", "to": "q_events", "type": "async", "label": "OrderPaid ⚡", "edge": "e5"} ] },
+        { "seq": 7, "explanation": "Стек розкручується до кінця: OrderDto повертається контролеру, транзакція закривається.",
+          "code_ref": "CheckoutController.java:41-52",
+          "arrows": [ {"from": "svc_order", "to": "ctl_checkout", "type": "return", "label": "OrderDto", "edge": "e1"} ] },
+        { "seq": 8, "explanation": "Уже ПОЗА запитом: RabbitMQ роздає подію консюмерам N7 і N8.",
+          "code_ref": "OrderPaidListener.java:20-45",
+          "arrows": [ {"from": "q_events", "to": "svc_notif", "type": "async", "label": "order.paid", "edge": "e6"},
+                      {"from": "q_events", "to": "svc_wh", "type": "async", "label": "order.paid", "edge": "e7"} ] }
+      ]},
+
+    { "id": "flow_bug", "title": "BUG · duplicate charge on retry", "kind": "bug_path",
+      "description": "Stripe відповідає за 6.2s при нашому 5s клієнтському таймауті. Charge пройшов, але ми цього не знаємо. Два retry-контури один поверх одного.",
+      "participants": ["ctl_checkout", "svc_order", "svc_payment", "gw_stripe", "repo_order", "q_events"],
+      "entry": "ctl_checkout",
+      "verified_by": "local_run",
+      "preface": [ {"from": "ctl_checkout", "to": "svc_order", "type": "call", "label": "placeOrder(dto)", "edge": "e1"},
+                   {"from": "svc_order", "to": "svc_payment", "type": "call", "label": "charge()", "edge": "e2"} ],
+      "steps": [
+        { "seq": 1, "explanation": "Спроба №1: Stripe обробляє 6.2s. Гроші СПИСАНІ, але наш 5s таймаут кидає PaymentTimeoutException. Червона стрілка = виняток.",
+          "code_ref": "StripeGateway.java:38-44",
+          "arrows": [ {"from": "svc_payment", "to": "gw_stripe", "type": "call", "label": "POST /v1/charges (№1)", "edge": "e3"},
+                      {"from": "gw_stripe", "to": "svc_payment", "type": "return", "label": "✗ Timeout (charge OK у Stripe!)", "edge": "e3", "err": true} ] },
+        { "seq": 2, "explanation": "Retry-контур №1 (усередині N3): activation N3 не закривається — catch викликає N4 знову. Без idempotency key → нова транзакція для Stripe. Друге списання.",
+          "code_ref": "PaymentService.java:61-78",
+          "arrows": [ {"from": "svc_payment", "to": "gw_stripe", "type": "call", "label": "POST (№2, без idem key)", "edge": "e3"},
+                      {"from": "gw_stripe", "to": "svc_payment", "type": "return", "label": "✗ timeout знову", "edge": "e3", "err": true} ] },
+        { "seq": 3, "explanation": "Ретраї N3 вичерпані — виняток летить нагору. Activation N3 закрилась, але activation N2 жива, і її catch зараз зробить дурницю.",
+          "code_ref": "OrderService.java:138-151",
+          "arrows": [ {"from": "svc_payment", "to": "svc_order", "type": "return", "label": "✗ PaymentTimeoutException", "edge": "e2", "err": true} ] },
+        { "seq": 4, "explanation": "Retry-контур №2: catch у N2 вручну викликає charge() — увесь ланцюг заново. Потенційно третє списання. Порівняй фігуру зі степом 3 happy path.",
+          "code_ref": "OrderService.java:138-151",
+          "arrows": [ {"from": "svc_order", "to": "svc_payment", "type": "call", "label": "charge() — manual retry!", "edge": "e2"},
+                      {"from": "svc_payment", "to": "gw_stripe", "type": "call", "label": "POST /v1/charges (№3)", "edge": "e3"} ] },
+        { "seq": 5, "explanation": "Цього разу Stripe встиг. Результат розкручується назад — для системи все виглядає як успіх з першої спроби.",
+          "code_ref": "StripeGateway.java:30-44",
+          "arrows": [ {"from": "gw_stripe", "to": "svc_payment", "type": "return", "label": "ChargeResult(ok)", "edge": "e3"},
+                      {"from": "svc_payment", "to": "svc_order", "type": "return", "label": "PaymentResult(ok)", "edge": "e2"} ] },
+        { "seq": 6, "explanation": "PAID зберігається, OrderPaid публікується один раз. Дублікат видно лише у виписці Stripe — тому баг жив непоміченим.",
+          "code_ref": "OrderService.java:170-196",
+          "arrows": [ {"from": "svc_order", "to": "repo_order", "type": "call", "label": "save(PAID)", "edge": "e4"},
+                      {"from": "repo_order", "to": "svc_order", "type": "return", "label": "", "edge": "e4"},
+                      {"from": "svc_order", "to": "q_events", "type": "async", "label": "OrderPaid ⚡ (×1)", "edge": "e5"} ] }
+      ]}
+  ],
+
+  "diffs": [
+    { "op": "add_node",
+      "node": { "id": "svc_idem", "display_id": "N9", "kind": "service", "label": "IdempotencyGuard",
+        "resolution": "confirmed", "scope": "in_focus", "pos": {"x": 660, "y": 50}, "expandable": false,
+        "summary": "[PROPOSED] Ключ = hash(orderId + attemptScope); всі спроби charge для замовлення несуть той самий ключ.",
+        "source_refs": ["(new) payment/IdempotencyGuard.java"] },
+      "rationale": "Stripe дедуплікує по Idempotency-Key: скільки б ретраїв не було — списання одне." },
+    { "op": "add_edge",
+      "edge": { "id": "de1", "display_id": "E9", "from": "svc_payment", "to": "svc_idem", "kind": "sync_call", "label": "keyFor(orderId)" },
+      "rationale": "PaymentService отримує ключ перед кожним charge." },
+    { "op": "modify_node", "target": "gw_stripe",
+      "rationale": "StripeGateway (N4): додати header Idempotency-Key до POST /v1/charges." },
+    { "op": "modify_node", "target": "svc_order",
+      "rationale": "OrderService (N2): видалити ручний retry у pay(). Один retry-контур, одна відповідальність." }
+  ],
+
+  "flow_diffs": [
+    { "flow_id": "flow_bug",
+      "removed_step_seqs": [4, 5],
+      "note": "Ручний retry видалено — степи 4–5 зникають; винятки з N3 тепер термінальні для pay() і обробляються як failed payment.",
+      "added_steps": [] }
+  ],
+
+  "advisory": {
+    "summary": "Фікс двошаровий: (1) idempotency key наскрізно до Stripe, (2) видалення дублюючого retry-контуру в OrderService. Blast radius: 1 явний залежний (N1) + 1 непідтверджена підозра в радіусі (BB1 — тригер на orders, спрацьовує на save(PAID)). Рекомендація: дослідити BB1 до merge — тригер може писати аудит на кожен save і зміна семантики ретраїв змінить кількість записів.",
+    "hotspots": [
+      { "node": "svc_order",
+        "recommendation": "tangle_score 0.71 (fan-out 3, 2 флоу, change_coupling 0.62). Ручний retry — симптом розмитої відповідальності: винести retry-політику повністю в PaymentService до фікса, інакше наступний баг такого ж класу — питання часу.",
+        "supporting_metrics": ["fan_out=3", "flows_count=2", "change_coupling=0.62"] }
+    ],
+    "residual_uncertainty": "Не скановано: git change-coupling (на вимогу), ручні зміни на проді, зовнішні системи без коду в репо. BB1 не досліджений — perimeter gate чекає рішення."
+  },
+
+  "code_snippets": {
+    "OrderService.java:138-151": { "hl": [3, 4, 5, 6], "text": "} catch (PaymentTimeoutException e) {\n    log.warn(\"payment timeout, retrying manually\", e);\n    // BUG: manual retry on top of PaymentService's\n    // own retry loop. No idempotency key anywhere,\n    // so every attempt may charge the card again.\n    PaymentResult retry = paymentService\n        .charge(order.getId(), order.getTotal());\n    if (retry.isSuccess()) confirmOrder(order, retry);\n}" },
+    "PaymentService.java:61-78": { "hl": [2, 3], "text": "for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {\n    try {\n        // retry loop #1 — no idempotency key passed\n        return stripeGateway.createCharge(orderId, amount);\n    } catch (PaymentTimeoutException e) {\n        if (attempt == MAX_RETRIES) throw e;\n        backoff(attempt);\n    }\n}" },
+    "StripeGateway.java:38-44": { "hl": [1, 2], "text": "HttpRequest req = HttpRequest.newBuilder(CHARGES_URI)\n    .timeout(Duration.ofSeconds(5))   // <- OUR client-side\n    .POST(body(orderId, amount))      //    timeout; Stripe\n    .build();                          //    may still finish\nreturn send(req);                      //    the charge" },
+    "CheckoutController.java:41-52": { "hl": [], "text": "@PostMapping(\"/checkout\")\npublic ResponseEntity<OrderDto> checkout(\n        @Valid @RequestBody CheckoutRequest req) {\n    Order order = orderService.placeOrder(req);\n    return ResponseEntity.ok(OrderDto.from(order));\n}" },
+    "OrderService.java:60-71": { "hl": [], "text": "Order order = Order.create(req);   // status = CREATED\norderRepository.save(order);\nstockService.reserve(order.getItems());" },
+    "OrderService.java:126-131": { "hl": [], "text": "PaymentResult result = paymentService\n    .charge(order.getId(), order.getTotal());\n// sync call: result returns up this same chain" },
+    "OrderService.java:170-196": { "hl": [], "text": "private void confirmOrder(Order order, PaymentResult r) {\n    order.markPaid(r.chargeId());\n    orderRepository.save(order);\n    eventPublisher.publish(new OrderPaid(order)); // async\n}" },
+    "OrderEventPublisher.java:22-35": { "hl": [], "text": "rabbitTemplate.convertAndSend(\n    \"order.events\", \"order.paid\", event);\n// fire-and-forget: no reply expected" },
+    "OrderPaidListener.java:20-45": { "hl": [], "text": "@RabbitListener(queues = \"notif.order.paid\")\npublic void onOrderPaid(OrderPaid event) {\n    mailer.sendReceipt(event.customerEmail(), event);\n}" },
+    "migrations/V13__audit.sql:20-31": { "hl": [1, 2], "text": "-- suspected influence (BB1)\nCREATE TRIGGER orders_status_audit\nAFTER UPDATE ON orders\nFOR EACH ROW EXECUTE FUNCTION audit_order_status();" }
+  }
+}
