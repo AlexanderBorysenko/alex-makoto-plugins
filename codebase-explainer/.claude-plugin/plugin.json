@@ -1,6 +1,0 @@
-{
-  "name": "codebase-explainer",
-  "description": "Protocol Codebase Explainer (PCE): agent-generated, task-scoped architecture maps with structural (map) and behavioral (sequence) projections, black-box perimeter tracking, impact analysis and a local viewer.",
-  "version": "0.4.0",
-  "author": { "name": "Alex" }
-}

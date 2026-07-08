@@ -3,7 +3,7 @@ description: Build an interactive PCE architecture map for a task (explain / deb
 argument-hint: "<intent: explain|debug|extend> <task description>"
 ---
 
-Run the Protocol Codebase Explainer workflow for: $ARGUMENTS
+Run the Architect Goggles workflow for: $ARGUMENTS
 
 1. Use the **arch-map** skill: frame intent/scope, read the environment manifest, build the
    structural map from the code index, run the cheap perimeter broad-scan, assign display_ids,

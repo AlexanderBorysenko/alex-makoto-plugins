@@ -1,6 +1,11 @@
-# Protocol Codebase Explainer (PCE) — Claude Code plugin
+# Architect Goggles — Claude Code plugin
 
-Agent-generated, **task-scoped** architecture maps for explaining, debugging and extending large codebases.
+A visual surface for **looking at** a codebase: explore its structure, spot architectural
+problems, ask the agent questions, and review agent-proposed changes as diagram diffs —
+before any code is written.
+
+Under the hood it's a protocol (**PCE** — the task-scoped map document format) plus a local
+viewer. Agent-generated maps for explaining, debugging and extending large codebases.
 
 One JSON model → two synchronized projections:
 - **MAP** — structure: who exists, who depends on whom, blast radius, heat overlay
@@ -34,6 +39,7 @@ Agent workflow: write map JSON → `node register-map.mjs <file>` → returns ha
 `http://localhost:4173/?map=<hash>`. An example map ships as `maps/example.json` (open `/?map=example`).
 
 ## Status
-v0.4 scaffold. Viewer implements: map + sequence + shared playback, black boxes,
+v0.5 scaffold (renamed from `codebase-explainer`; map format still **PCE v0.4**).
+Viewer implements: map + sequence + shared playback, black boxes,
 suspected-influence edges, heat overlay, diff mode incl. sequence ghost-arrows, seq zoom.
 Deferred by design: map accumulation/reuse, auto-layout (positions are agent-provided for now).
