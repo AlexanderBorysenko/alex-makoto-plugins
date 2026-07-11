@@ -1,0 +1,6 @@
+{
+  "name": "project-executor",
+  "description": "Project Executor: durable per-project execution memory plus real local execution — app lifecycle, tests/builds, browser flows, instrumented bug reproduction — with evidence-backed reports. Skills for humans (/execute, /exec-mem) and an executor agent for pipelines.",
+  "version": "0.1.0",
+  "author": { "name": "Alex" }
+}
