@@ -1,4 +1,4 @@
-﻿# Report Contract
+# Report Contract
 
 Every /execute flow ends with a report at
 `.claude-memory/executions/reports/<YYYY-MM-DD-slug>/report.md`.
@@ -29,7 +29,7 @@ Every /execute flow ends with a report at
     ## Memory updates      — what was learned/saved this run
     ## Cleanliness         — instrumentation stripped yes/no, tree state
 
-## verdict semantics
+## Verdict semantics
 
 - pass/fail      — test, build, full-test flows
 - reproduced/not-reproduced — repro flow (fail = repro machinery broke; use blocked)
