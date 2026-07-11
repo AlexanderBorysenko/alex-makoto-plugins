@@ -30,6 +30,8 @@ agent). Differences:
 | Ambiguous request | ask | best-match; record interpretation in report |
 | Unclean instrumentation strip | show diff, ask | report `cleanliness: unclean`, stop |
 
+Absent an explicit agentic directive from the `executor` agent, treat the invocation as interactive.
+
 ## Router
 
 Classify the request: start | stop | test | build | full-test | repro.

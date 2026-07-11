@@ -12,7 +12,7 @@ Every /execute flow ends with a report at
     started: <ISO 8601>
     finished: <ISO 8601>
     artifacts:
-      - screenshots/step-3-login.png
+      - screenshots/r20260711a-step3-login.png
       - logs/test-run.log
     cleanliness: clean | unclean
     ---

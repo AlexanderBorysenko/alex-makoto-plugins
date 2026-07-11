@@ -20,7 +20,9 @@ const server = http.createServer((req, res) => {
   res.writeHead(404); res.end();
 });
 
-server.listen(process.env.PORT || 3123, () =>
-  console.log(`hello-svc listening on ${process.env.PORT || 3123}`));
+if (require.main === module) {
+  server.listen(process.env.PORT || 3123, () =>
+    console.log(`hello-svc listening on ${process.env.PORT || 3123}`));
+}
 
 module.exports = { add };

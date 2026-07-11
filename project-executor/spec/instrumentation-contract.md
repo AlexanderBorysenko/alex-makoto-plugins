@@ -42,8 +42,11 @@ Registry is updated by the instrumenter after EVERY injection, before returning.
 
 ## Gate
 
-Report phase is BLOCKED while the registry has entries. A crashed prior session
-is healed by running the strip protocol first (grep finds orphans).
+Report phase is BLOCKED while the registry has entries — with ONE exception:
+after a FAILED strip (mismatch), the unclean report is written despite the
+non-empty registry, precisely to record the uncleanliness. The gate blocks
+only clean-path reports. A crashed prior session is healed by running the
+strip protocol first (grep finds orphans).
 
 ## Learning
 

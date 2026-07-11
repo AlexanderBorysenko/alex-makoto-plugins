@@ -105,7 +105,7 @@ All flows: new env discoveries → journal; failed-then-resolved issues → `got
 - **Injection**: main model specifies where and what to capture; `exec-instrumenter` performs the edits.
 - **Strip**: grep the whole repo for `EXEC-TRACE:<runid>`, remove those lines, then verify the tree diff matches the pre-injection snapshot. On mismatch: interactive → stop and show the diff, ask; agentic → mark report `cleanliness: unclean` with details, never force-restore.
 - **Idempotent**: cleanup is rerun-safe; a crashed session self-heals on the next run (registry + repo-wide tag grep).
-- **Gate**: the report phase is blocked while the instrumentation registry is non-empty.
+- **Gate**: the report phase is blocked while the instrumentation registry is non-empty. Exception: after a failed strip, the `cleanliness: unclean` report is written despite the non-empty registry; the gate blocks only clean-path reports.
 - Proven-useful observation points are saved to `gotchas.md` (e.g. "session bugs trace best at middleware/session.ts:40").
 
 ## Reporting (capability h)

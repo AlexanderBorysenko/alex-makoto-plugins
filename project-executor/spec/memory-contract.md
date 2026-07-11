@@ -17,9 +17,10 @@ All execution memory lives in the TARGET PROJECT at `.claude-memory/executions/`
 
 1. Create missing directories/files from the templates below.
 2. Gitignore guard: ensure the target repo ignores the memory dir. If `.gitignore`
-   exists and lacks it, append a line `.claude-memory/`. If the repo would still
-   commit `data.md` (check `git check-ignore .claude-memory/executions/data.md`),
-   WARN the user before writing any credentials.
+   does not exist, CREATE it containing `.claude-memory/`. If it exists and lacks
+   the line, append it. If the repo would still commit `data.md` (check
+   `git check-ignore .claude-memory/executions/data.md`), WARN the user before
+   writing any credentials.
 
 ## Schema file templates
 

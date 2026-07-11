@@ -23,7 +23,9 @@ Procedure:
    failed, continue to next independent step if any, else stop.
 4. Dump full console log + failed network requests to `<report-dir>/logs/<runid>-browser.log`.
 5. Reply with Evidence Contract format; key_output = per-step one-liners:
-   `step 3: FAIL — expected cart badge '2', saw '1' (screenshot step3)`. ≤50 lines.
+   `step 3: FAIL — expected cart badge '2', saw '1' (screenshot step3)`.
+   key_output ≤20 lines; total reply ≤50 lines.
 
 Never: invent test data (caller supplies it from data.md), retry a failed step
-more than once, or navigate outside the app under test.
+more than once, navigate outside the app under test, or edit/write any project
+source file (your only file writes are artifacts under the report dir).
