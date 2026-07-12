@@ -1,0 +1,90 @@
+---
+name: researcher
+description: Deterministic research workflow for codebase/domain questions. Use whenever the user asks to investigate, look up, trace, or understand code or data — or types /research or /research-setup. Triage L1/L2/L3, route to Graphify/Serena/context-mode/web by table, ground every claim with evidence pointers, persist reusable findings to .claude-research/.
+---
+
+# Researcher
+
+You are running a disciplined research workflow. The goal is the widest complete
+answer using the right tooling in the fastest way — and never inventing logic
+that does not exist. Flow: **triage → route → execute → ground → (persist)**.
+
+## Grounding rules (active for the whole research task)
+
+1. Every factual claim about code cites `file:line`, a tool output, or a findings doc.
+2. No evidence for a claim → prefix it with **"unverified:"**.
+3. **"Not found" is a valid, complete answer.** Never fill gaps with plausible-sounding logic.
+4. Never infer behavior from names alone. A function called `validateUser` is not proof it validates anything.
+5. Separate READ (I saw this code) from ASSUMED (I expect this based on pattern) — explicitly.
+6. If memory/graph contradicts current code, current code wins; mark the finding STALE?.
+
+## Step 0 — load state
+
+- If `.claude-research/` exists: read `.claude-research/config.md` (tool availability + domain notes), then run
+  `node ${CLAUDE_PLUGIN_ROOT}/bin/research-index.js list` and scan for findings relevant to the question.
+  A relevant non-STALE finding may be cited as evidence; a `STALE?` finding must be re-verified before citing.
+- If `.claude-research/` does not exist: proceed without memory; offer `/research-setup` once at the end of the answer.
+
+## Step 1 — triage
+
+Classify the question. State the chosen level in one line before executing
+(e.g. `Triage: L2 — behavior spans auth + session modules.`).
+If the question spans levels, pick the highest triggered. If genuinely ambiguous,
+ask ONE clarifying question instead of guessing.
+
+| Level | Signal | Examples |
+|-------|--------|----------|
+| **L1 lookup** | Single fact, one symbol/file/value | "where is X defined", "what's the default timeout" |
+| **L2 investigation** | Behavior across files, one subsystem | "how does auth flow work", "what calls Y and why" |
+| **L3 deep research** | Architecture-wide, external knowledge, or ambiguous scope | "how should we integrate Z", "why is the pipeline slow", library/docs questions |
+
+## Step 2 — route
+
+Use the primary tool first; fall to secondary only when the primary returns
+empty or is marked `no` in config.md. Never silently substitute guesswork for
+an unavailable tool — say which tool was unavailable.
+
+| Level | Primary | Secondary | Output |
+|-------|---------|-----------|--------|
+| **L1** | Serena `find_symbol` / `find_referencing_symbols`; `graphify query` for structure questions | Grep | Inline answer + evidence pointer. Nothing persisted. |
+| **L2** | `graphify query` + `graphify path`; Serena references/implementations for the code level | context-mode `ctx_batch_execute` when outputs are large | Inline answer; persist a finding if reusable across sessions. |
+| **L3** | `graphify explain` + `graphify-out/wiki/`; web research (context7 for libraries, firecrawl/WebSearch otherwise); parallel Explore subagents for wide sweeps | context-mode for processing; `.claude-memory/architecture_cache.md` as read-only context | Findings doc in `.claude-research/findings/` + INDEX.md line. |
+
+Empty result handling: `graphify query` empty → say so, fall to Serena/grep.
+Serena empty → grep. Grep empty → the answer is "not found". Do not invent structure.
+
+## Step 3 — execute
+
+Run the routed tools. Batch independent lookups. For L3, prefer fan-out
+(multiple Explore subagents, each with a narrow question) over one broad sweep.
+
+## Step 4 — verify gate (before answering)
+
+Walk the draft answer claim by claim:
+
+- [ ] Each claim has a pointer (`file:line` / tool output / finding)? Unverified ones prefixed "unverified:"?
+- [ ] Any "not found" stated plainly rather than papered over?
+- [ ] READ vs ASSUMED separation explicit where assumptions exist?
+- [ ] Closing line states triage level + tools consulted, e.g. `— L2 via graphify query, serena references.`
+
+## Step 5 — persist (L2 optional, L3 required)
+
+1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/finding.md` structure; fill every frontmatter field:
+   `head:` = current `git rev-parse HEAD`; `files:` = the evidence files cited.
+2. Save as `.claude-research/findings/<kebab-slug>.md`.
+3. Append to `.claude-research/INDEX.md`: `- [Title](findings/<slug>.md) — <hook> — <date>`.
+4. Fill the **For goggles** section (nodes/edges/black-box suspects) whenever the finding touched structure — architect-goggles and product-designer-goggles consume it as pre-verified evidence. This link is one-way: never read goggles maps as research evidence.
+
+Boundary: never write into `.claude-memory/` — that store belongs to the memory-system plugin.
+
+## Setup workflow (/research-setup)
+
+1. If `.claude-research/` missing: create `config.md` from `${CLAUDE_PLUGIN_ROOT}/templates/config.md`
+   (ask for project name + domain notes; for tool availability, prefill from the SessionStart status block),
+   `INDEX.md` from `templates/research-index.md`, and an empty `findings/` dir.
+2. Ask whether `.claude-research/` should be committed or gitignored; record the choice in config.md
+   and add a `.gitignore` entry if gitignored.
+3. `graphify-out/graph.json` missing and graphify wanted: state that `graphify index .` costs API tokens
+   and can take a while; run it ONLY after explicit approval.
+4. Serena not activated and wanted: offer `mcp__plugin_serena_serena__activate_project` / onboarding.
+5. Finish with the same status block format the SessionStart hook prints.
