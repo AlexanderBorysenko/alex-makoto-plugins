@@ -22,6 +22,12 @@
       "source": "./architect-goggles",
       "version": "0.5.0",
       "description": "Architect Goggles: a visual surface for looking at a codebase — agent-generated, task-scoped architecture maps (PCE) with structural and behavioral projections, black-box perimeter tracking, change review as diagram diffs, and a local viewer."
+    },
+    {
+      "name": "product-designer-goggles",
+      "source": "./product-designer-goggles",
+      "version": "0.1.0",
+      "description": "Product maps (PJM): capability view + journey playback with screenshots, product impact diffs, HTML deck export."
     }
   ]
 }
