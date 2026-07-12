@@ -1,0 +1,5 @@
+{
+  "name": "promo-shop",
+  "private": true,
+  "scripts": { "start": "node server.js" }
+}
