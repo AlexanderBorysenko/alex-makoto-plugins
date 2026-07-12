@@ -1,0 +1,251 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pjm/schema/v0.1",
+  "title": "PJM Map Document",
+  "description": "Task-scoped product map: one model, rendered as CAPABILITY (structure) and JOURNEY (behavior) projections.",
+  "type": "object",
+  "required": ["protocol_version", "meta", "nodes", "edges", "flows"],
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": { "const": "pjm-0.1" },
+
+    "meta": {
+      "type": "object",
+      "required": ["title", "intent", "generated_at", "commit_hash", "analysis_scope"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "intent": {
+          "enum": ["explain", "impact", "present"],
+          "description": "explain: product understanding, canonical journeys. impact: proposed change -> product blast radius + journey regressions (diffs populated). present: journeys destined for screenshot capture + deck export."
+        },
+        "task": { "type": "string", "description": "Free-form task statement (bug id, feature request, onboarding question)." },
+        "repo": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "commit_hash": { "type": "string", "description": "HEAD at generation time. Maps are EPHEMERAL: valid for this commit, not maintained afterwards." },
+        "analysis_scope": {
+          "type": "string",
+          "description": "Human-readable definition of what is 'in focus'. The perimeter-closure invariant applies within this scope."
+        },
+        "scan_coverage": {
+          "type": "object",
+          "description": "Honest declaration of residual uncertainty (unknown unknowns line of defense).",
+          "properties": {
+            "scanned_sources": { "type": "array", "items": { "type": "string" }, "description": "e.g. ['migrations', 'spring annotations', 'rmq bindings config', 'git history 6mo', 'environment manifest']" },
+            "not_scanned": { "type": "array", "items": { "type": "string" }, "description": "e.g. ['manual prod changes', 'external systems without code in repo']" }
+          }
+        },
+        "environment_manifest_ref": { "type": "string", "description": "Path/URL of the PRODUCT.md manifest consumed during generation, if any." },
+        "source_root": { "type": "string", "description": "Absolute path to the analyzed repo on the machine running the viewer. When present, the viewer resolves node.source_refs (file:lineStart-lineEnd, repo-relative) to live code: previews the slice in the inspector and offers 'Open in IDE' (code -g). Omit to fall back to embedded code_snippets only." }
+      }
+    },
+
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/node" }
+    },
+
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/edge" }
+    },
+
+    "flows": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/flow" }
+    },
+
+    "diffs": {
+      "type": "array",
+      "description": "Proposed STRUCTURAL changes (impact-diff skill output).",
+      "items": { "$ref": "#/definitions/diffOp" }
+    },
+
+    "flow_diffs": {
+      "type": "array",
+      "description": "Proposed BEHAVIORAL changes: how journeys transform under the proposed change. Rendered as ghost/added arrows in JOURNEY view.",
+      "items": {
+        "type": "object",
+        "required": ["flow_id"],
+        "properties": {
+          "flow_id": { "type": "string" },
+          "removed_step_seqs": { "type": "array", "items": { "type": "integer" }, "description": "Steps that disappear under the proposed change." },
+          "added_steps": { "type": "array", "items": { "$ref": "#/definitions/step" } },
+          "note": { "type": "string" }
+        }
+      }
+    },
+
+    "advisory": {
+      "type": "object",
+      "description": "LLM-written interpretation layer ON TOP of deterministic metrics. Never the other way around.",
+      "properties": {
+        "summary": { "type": "string" },
+        "notes": {
+          "type": "array",
+          "description": "Non-structural observations that are NOT hotspots: runtime/perf bottlenecks, logic-density, operational risks. Honest home for insight that doesn't predict breakage radius.",
+          "items": {
+            "type": "object",
+            "required": ["node", "kind", "note"],
+            "properties": {
+              "node": { "type": "string" },
+              "kind": { "enum": ["ux", "business", "risk"] },
+              "note": { "type": "string" },
+              "code_ref": { "type": "string" }
+            }
+          }
+        },
+        "open_questions": { "type": "array", "items": { "type": "string" }, "description": "Unroutable black boxes / unconfirmed whys left for the human." },
+        "residual_uncertainty": { "type": "string", "description": "Explicit statement of what remains unknown after this analysis." }
+      }
+    },
+
+    "code_snippets": {
+      "type": "object",
+      "description": "Optional pre-resolved snippets for source_refs (viewer may also read files live).",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": { "type": "string" },
+          "hl": { "type": "array", "items": { "type": "integer" } }
+        }
+      }
+    }
+  },
+
+  "definitions": {
+    "node": {
+      "type": "object",
+      "required": ["id", "display_id", "kind", "label", "resolution", "scope"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "description": "Stable semantic id (svc_order). Used in cross-references." },
+        "display_id": { "type": "string", "description": "Short human/AI shared coordinate (N2, N2.1, BB1). Rendered semi-transparent in UI; used in chat: 'explain E3', 'investigate BB1'." },
+        "kind": {
+          "type": "string",
+          "description": "WHAT it is. Open set; common: capability, screen, role, rule, entity, external_system. NOTE: black box is NOT a kind — it is resolution=suspected.",
+          "minLength": 1
+        },
+        "label": { "type": "string" },
+        "resolution": {
+          "enum": ["confirmed", "suspected", "dismissed"],
+          "description": "HOW MUCH we know. suspected = Black Box: cheap broad-scan found a concrete artifact hint, deep-dive not yet done. dismissed nodes are KEPT (with dismissal reason in evidence) so investigations aren't repeated."
+        },
+        "scope": {
+          "enum": ["in_focus", "peripheral"],
+          "description": "Relation to meta.analysis_scope, NOT an intrinsic property. peripheral = lives its own life and influences the focused subsystem from the side (trigger, cron, other service via shared DB)."
+        },
+        "summary": { "type": "string" },
+        "evidence": {
+          "type": "string",
+          "description": "MANDATORY for resolution=suspected|dismissed. Concrete artifact that justified the suspicion (migration line, @Scheduled annotation, rmq binding, git change-coupling stat) or the dismissal reason. A black box without evidence is spam and violates the agent contract."
+        },
+        "relevance": { "enum": ["high", "medium", "low"], "description": "For suspected nodes: how likely to matter for the current task." },
+        "source_refs": { "type": "array", "items": { "type": "string" }, "description": "file:lineStart-lineEnd. Every claim on the diagram must be one click away from real code." },
+        "manifest_ref": { "type": "string", "description": "If the node came from the environment manifest rather than code scan." },
+        "metrics": {
+          "type": "object",
+          "description": "DETERMINISTIC numbers from code index + git. No LLM involvement — otherwise the heat overlay can't be trusted.",
+          "properties": {
+            "fan_in": { "type": "integer" },
+            "fan_out": { "type": "integer" },
+            "flows_count": { "type": "integer", "description": "In how many known flows this node participates." }
+          }
+        },
+        "pos": { "type": "object", "properties": { "x": {"type":"number"}, "y": {"type":"number"} }, "description": "OPTIONAL layout hint. If omitted, the viewer assigns a position via built-in left→right layered auto-layout. Provide pos only to pin a node; mixing pinned and auto nodes is allowed but auto nodes are placed on a grid and may sit near pinned ones." },
+        "investigated_at": { "type": "string", "format": "date-time", "description": "Reserved for future map accumulation. Optional in v0.4." }
+      }
+    },
+
+    "edge": {
+      "type": "object",
+      "required": ["id", "display_id", "from", "to", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "display_id": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "kind": {
+          "enum": ["uses", "affects", "governed_by", "navigates_to", "suspected_influence"],
+          "description": "Product-scope relations. suspected_influence: dashed '?' edge from/to a black box."
+        },
+        "label": { "type": "string" },
+        "evidence": { "type": "string", "description": "Required when kind=suspected_influence." }
+      }
+    },
+
+    "flow": {
+      "type": "object",
+      "required": ["id", "title", "kind", "participants", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "kind": {
+          "enum": ["happy_path", "failure_path", "bug_path", "edge_case", "proposed"],
+          "description": "happy_path: canonical success. failure_path: DESIGNED failure handling — the system behaving as intended under a fault (use for explain-intent failure scenarios). bug_path: reproduction of an ACTUAL defect (debug intent only — implies 'this is broken now'). edge_case: unusual-but-valid input/state. proposed: flow under a proposed diff."
+        },
+        "description": { "type": "string" },
+        "actor": { "type": "string", "description": "Primary actor (role node id) of this journey." },
+        "goal": { "type": "string" },
+        "variant": { "type": "string", "description": "Scenario variant label, e.g. 'empty cart', 'error'." },
+        "participants": { "type": "array", "items": { "type": "string" }, "description": "Ordered lifelines for SEQUENCE." },
+        "entry": { "type": "string" },
+        "verified_by": {
+          "enum": ["static_analysis", "local_run", "static_and_run", "hypothesis"],
+          "description": "Honesty marker: was this flow confirmed by an actual run/trace or is it derived/hypothesized?"
+        },
+        "preface": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/arrow" },
+          "description": "Context arrows before step 1 ('how we got here') so mid-process flows don't float."
+        },
+        "steps": { "type": "array", "items": { "$ref": "#/definitions/step" } }
+      }
+    },
+
+    "step": {
+      "type": "object",
+      "required": ["seq", "explanation", "arrows"],
+      "additionalProperties": false,
+      "properties": {
+        "seq": { "type": "integer" },
+        "explanation": { "type": "string", "description": "What happens and WHY it matters; shown in playback." },
+        "code_ref": { "type": "string" },
+        "screen": { "type": "string", "description": "Screen node id where this step happens (journey integrity: must exist)." },
+        "business_why": { "type": "string", "description": "Why this step exists for the user/business. Unsourced why must be reflected as suspected via the owning node or advisory." },
+        "screenshot": { "type": "string", "description": "Path relative to the map file, or the literal 'pending'." },
+        "arrows": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/arrow" } }
+      }
+    },
+
+    "arrow": {
+      "type": "object",
+      "required": ["from", "to", "type"],
+      "additionalProperties": false,
+      "description": "Atomic behavioral event. MAP derives which edges to light (arrow.edge); SEQUENCE derives activation bars by stack simulation (push on call, pop on return). The call stack is COMPUTED from data, never hand-drawn.",
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "type": { "enum": ["call", "return", "async"] },
+        "label": { "type": "string" },
+        "edge": { "type": "string", "description": "Which structural edge this event travels over. Links the two projections." },
+        "err": { "type": "boolean", "description": "return carrying an exception rather than a result." }
+      }
+    },
+
+    "diffOp": {
+      "type": "object",
+      "required": ["op", "rationale"],
+      "properties": {
+        "op": { "enum": ["add_node", "add_edge", "modify_node", "modify_edge", "remove_node", "remove_edge"] },
+        "node": { "$ref": "#/definitions/node" },
+        "edge": { "$ref": "#/definitions/edge" },
+        "target": { "type": "string", "description": "id for modify_*/remove_* ops." },
+        "rationale": { "type": "string" }
+      }
+    }
+  }
+}

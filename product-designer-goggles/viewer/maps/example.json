@@ -1,0 +1,48 @@
+{
+  "protocol_version": "pjm-0.1",
+  "meta": {
+    "title": "Checkout — promo code handling",
+    "intent": "explain",
+    "task": "Understand product scope before fixing promo-code rounding bug",
+    "generated_at": "2026-07-12T10:00:00Z",
+    "commit_hash": "0000000",
+    "analysis_scope": "Cart + checkout promo flow as the shopper experiences it"
+  },
+  "nodes": [
+    { "id": "role_shopper", "display_id": "R1", "kind": "role", "label": "Shopper", "resolution": "confirmed", "scope": "in_focus", "summary": "Buys products; applies promo codes at checkout.", "source_refs": [] },
+    { "id": "cap_promo", "display_id": "C1", "kind": "capability", "label": "Promo codes", "resolution": "confirmed", "scope": "in_focus", "summary": "Percentage and fixed-amount discounts applied to the cart total.", "source_refs": ["src/promo/apply.ts:10-80"] },
+    { "id": "scr_cart", "display_id": "S1", "kind": "screen", "label": "Cart", "resolution": "confirmed", "scope": "in_focus", "summary": "Shows items, totals, promo input.", "source_refs": ["src/pages/cart.tsx:1-40"] },
+    { "id": "scr_checkout", "display_id": "S2", "kind": "screen", "label": "Checkout", "resolution": "confirmed", "scope": "in_focus", "summary": "Payment + final total incl. discount.", "source_refs": ["src/pages/checkout.tsx:1-60"] },
+    { "id": "rule_single_promo", "display_id": "BR1", "kind": "rule", "label": "One promo per order", "resolution": "confirmed", "scope": "in_focus", "summary": "Business rule: promos do not stack.", "source_refs": ["src/promo/apply.ts:22-30"] },
+    { "id": "bb_loyalty", "display_id": "BB1", "kind": "capability", "label": "Loyalty points interaction?", "resolution": "suspected", "scope": "peripheral", "evidence": "loyalty service reads cart_total in loyalty/accrual.ts:15 — discount may change points earned", "relevance": "high", "source_refs": ["loyalty/accrual.ts:15-15"] }
+  ],
+  "edges": [
+    { "id": "e_shopper_cart", "display_id": "PE1", "from": "role_shopper", "to": "scr_cart", "kind": "uses" },
+    { "id": "e_cart_checkout", "display_id": "PE2", "from": "scr_cart", "to": "scr_checkout", "kind": "navigates_to" },
+    { "id": "e_promo_rule", "display_id": "PE3", "from": "cap_promo", "to": "rule_single_promo", "kind": "governed_by" },
+    { "id": "e_cart_promo", "display_id": "PE4", "from": "scr_cart", "to": "cap_promo", "kind": "uses" },
+    { "id": "e_promo_loyalty", "display_id": "PE5", "from": "cap_promo", "to": "bb_loyalty", "kind": "suspected_influence", "evidence": "shared cart_total field" }
+  ],
+  "flows": [
+    {
+      "id": "j_apply_promo", "title": "Apply promo code at checkout", "kind": "happy_path",
+      "actor": "role_shopper", "goal": "Pay less using a promo code", "variant": "valid code",
+      "participants": ["role_shopper", "scr_cart", "cap_promo", "scr_checkout"],
+      "verified_by": "static_analysis",
+      "steps": [
+        { "seq": 1, "explanation": "Shopper enters code SAVE10 in the cart.", "screen": "scr_cart", "business_why": "Discounts drive conversion; entry point is the cart.", "screenshot": "pending",
+          "arrows": [ { "from": "role_shopper", "to": "scr_cart", "type": "call", "label": "enter SAVE10", "edge": "e_shopper_cart" } ] },
+        { "seq": 2, "explanation": "Cart asks promo capability to validate and price the discount; single-promo rule enforced.", "screen": "scr_cart", "business_why": "Rule BR1 protects margins.", "screenshot": "pending",
+          "arrows": [ { "from": "scr_cart", "to": "cap_promo", "type": "call", "label": "validate+apply", "edge": "e_cart_promo" }, { "from": "cap_promo", "to": "scr_cart", "type": "return", "label": "new total" } ] },
+        { "seq": 3, "explanation": "Shopper proceeds to checkout; discounted total shown.", "screen": "scr_checkout", "business_why": "Total transparency before payment reduces abandonment.", "screenshot": "pending",
+          "arrows": [ { "from": "scr_cart", "to": "scr_checkout", "type": "async", "label": "navigate", "edge": "e_cart_checkout" } ] }
+      ]
+    }
+  ],
+  "advisory": {
+    "summary": "Promo application is cart-centric; checkout only displays results. Loyalty interaction is the open risk.",
+    "notes": [ { "node": "cap_promo", "kind": "business", "note": "Rounding of percentage discounts is where the reported bug lives." } ],
+    "open_questions": [ "BB1: does discount change loyalty accrual?" ],
+    "residual_uncertainty": "Marketing attribution of promo usage not scanned."
+  }
+}
