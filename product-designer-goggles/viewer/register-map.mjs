@@ -1,9 +1,9 @@
-// Register a PCE map for the viewer.
+// Register a PJM map for the viewer.
 // Usage: node register-map.mjs <path-to-map.json> [--name <alias>]
 // Copies the file to maps/<hash>.json, updates registry.json, prints the URL.
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { join } from "node:path";
+import path, { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL(".", import.meta.url));
@@ -16,9 +16,10 @@ const raw = await readFile(src, "utf8");
 let doc;
 try { doc = JSON.parse(raw); } catch (e) { console.error("invalid JSON:", e.message); process.exit(1); }
 // contract lint (spec/lint.mjs): perimeter closure, evidence, flow well-formedness,
-// deterministic-metric recompute, hotspot eligibility. Registration IS validation.
+// deterministic-metric recompute. Registration IS validation.
 const { lintMap } = await import(new URL("../spec/lint.mjs", import.meta.url));
-const { errors, warnings } = lintMap(doc);
+const mapDir = path.dirname(path.resolve(src));
+const { errors, warnings } = lintMap(doc, mapDir);
 if (warnings.length) console.warn("LINT WARNINGS:\n - " + warnings.join("\n - "));
 if (errors.length) { console.error("CONTRACT LINT FAILED:\n - " + errors.join("\n - ")); process.exit(2); }
 

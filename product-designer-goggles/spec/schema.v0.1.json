@@ -83,7 +83,7 @@
         "summary": { "type": "string" },
         "notes": {
           "type": "array",
-          "description": "Non-structural observations that are NOT hotspots: runtime/perf bottlenecks, logic-density, operational risks. Honest home for insight that doesn't predict breakage radius.",
+          "description": "Non-structural observations: UX friction, business risks, operational notes.",
           "items": {
             "type": "object",
             "required": ["node", "kind", "note"],
@@ -154,7 +154,7 @@
           }
         },
         "pos": { "type": "object", "properties": { "x": {"type":"number"}, "y": {"type":"number"} }, "description": "OPTIONAL layout hint. If omitted, the viewer assigns a position via built-in left→right layered auto-layout. Provide pos only to pin a node; mixing pinned and auto nodes is allowed but auto nodes are placed on a grid and may sit near pinned ones." },
-        "investigated_at": { "type": "string", "format": "date-time", "description": "Reserved for future map accumulation. Optional in v0.4." }
+        "investigated_at": { "type": "string", "format": "date-time", "description": "Reserved for future map accumulation. Optional in v0.1." }
       }
     },
 

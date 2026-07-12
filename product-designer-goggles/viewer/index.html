@@ -12,6 +12,7 @@
     --k-controller:#8f7bf0; --k-service:#4f8ef7; --k-gateway:#3fbdbd;
     --k-repo:#7d8aa5; --k-queue:#e08a4c; --k-consumer:#c9a24f; --k-internal:#6f7f9d;
     --k-db_trigger:#c96b6b; --k-scheduled_job:#b06bc9; --k-external_system:#b06bc9;
+    --k-capability:#5ec9a0; --k-screen:#52a8e8; --k-role:#e8a6d0; --k-rule:#d4c15a; --k-entity:#9fb37a;
     --mono:ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
     --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
   }
@@ -279,7 +280,7 @@
 <script>
 /* ============ load map by ?map=<hash> ============ */
 let DOC=null;
-const KIND_COLOR=k=>({controller:"var(--k-controller)",service:"var(--k-service)",gateway:"var(--k-gateway)",repo:"var(--k-repo)",queue:"var(--k-queue)",consumer:"var(--k-consumer)",internal:"var(--k-internal)",db_trigger:"var(--k-db_trigger)",scheduled_job:"var(--k-scheduled_job)",external_system:"var(--k-external_system)"}[k]||"var(--faint)");
+const KIND_COLOR=k=>({controller:"var(--k-controller)",service:"var(--k-service)",gateway:"var(--k-gateway)",repo:"var(--k-repo)",queue:"var(--k-queue)",consumer:"var(--k-consumer)",internal:"var(--k-internal)",db_trigger:"var(--k-db_trigger)",scheduled_job:"var(--k-scheduled_job)",external_system:"var(--k-external_system)",capability:"var(--k-capability)",screen:"var(--k-screen)",role:"var(--k-role)",rule:"var(--k-rule)",entity:"var(--k-entity)"}[k]||"var(--faint)");
 // PJM edge kinds → css class (suspected_influence keeps its own "suspect" styling)
 const edgeKindCls=k=>({uses:"k-uses",navigates_to:"k-navigates_to",governed_by:"k-governed_by",affects:"k-affects"}[k]||"");
 // PJM node kinds that get a distinct shape (suspected black-boxes keep default look)
@@ -390,6 +391,11 @@ function heatColor(s){ // 0..1 -> green..red
   const h=(1-Math.min(1,Math.max(0,s)))*120;
   return `hsl(${h} 65% 55%)`;
 }
+// Heat overlay value: normalized product-impact proxy (fan_in+fan_out+flows_count),
+// scaled 0..1 against the max across all nodes. Nodes without metrics score 0.
+function impactRaw(n){const m=n&&n.metrics;return m?((m.fan_in||0)+(m.fan_out||0)+(m.flows_count||0)):0;}
+function maxImpact(){return Math.max(0,...(DOC&&DOC.nodes||[]).map(impactRaw));}
+function heatValue(n){const mx=maxImpact();return mx>0?impactRaw(n)/mx:0;}
 
 /* ============ MAP ============ */
 const worldMap=document.getElementById("worldMap"),svgMap=document.getElementById("svgMap");
@@ -469,13 +475,13 @@ function drawNode(n,g,ctx){
   const b=boxFor(n),w=nd.width,h=nd.height,x=nd.x-w/2,y=nd.y-h/2;
   const isLit=ctx.litNodes.has(n.id),isSel=state.selected===n.id;
   const isAdd=ctx.addsN.includes(n.id),isMod=ctx.mods.includes(n.id),isSusp=n.resolution==="suspected";
-  const hasTS=!!(n.metrics&&typeof n.metrics.tangle_score==="number");
+  const hasMetrics=!!n.metrics;
   const isHot=state.heat&&!isSusp&&ctx.hotspots&&(ctx.hotspots.has(n.display_id)||ctx.hotspots.has(n.id));
   // shape by node kind (non-suspected only; black boxes keep the default dashed look)
   const kindCls=(!isSusp&&NODE_KINDS.has(n.kind))?" kind-"+n.kind:"";
   const grp=el("g",{class:"node"+(isSusp?" suspected":"")+kindCls+(isLit?" lit":"")+(ctx.dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${x},${y})`});
   const body=el("rect",{class:"body",width:w,height:h,rx:9});
-  if(state.heat&&hasTS&&!isSusp)body.setAttribute("style",`stroke:${heatColor(n.metrics.tangle_score)};stroke-width:2.4`);
+  if(state.heat&&hasMetrics&&!isSusp)body.setAttribute("style",`stroke:${heatColor(heatValue(n))};stroke-width:2.4`);
   else if(isHot)body.setAttribute("style","stroke:var(--rem);stroke-width:2.4");
   grp.appendChild(body);
   const kcol=isSusp?"var(--faint)":KIND_COLOR(n.kind);
@@ -495,8 +501,8 @@ function drawNode(n,g,ctx){
   b.lines.forEach((ln,i)=>grp.appendChild(el("text",{class:"label",x:14,y:b.first+i*LINE_H},ln)));
   if(b.kindText)grp.appendChild(el("text",{class:"kind",x:14,y:b.kindY,fill:isSusp?"var(--faint)":KIND_COLOR(n.kind)},b.kindText));
   grp.appendChild(el("text",{class:"nid",x:w-8,y:h-7,"text-anchor":"end"},n.display_id||""));
-  if(state.heat&&hasTS&&!isSusp)
-    grp.appendChild(el("text",{class:"difftag",x:w-46,y:14,fill:heatColor(n.metrics.tangle_score)},"♨ "+n.metrics.tangle_score.toFixed(2)));
+  if(state.heat&&hasMetrics&&!isSusp)
+    grp.appendChild(el("text",{class:"difftag",x:w-46,y:14,fill:heatColor(heatValue(n))},"♨ "+heatValue(n).toFixed(2)));
   else if(isHot)grp.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--rem)"},"♨ HOT"));
   if(isAdd)grp.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--add)"},"+ NEW"));
   if(isMod)grp.appendChild(el("text",{class:"difftag",x:w-42,y:14,fill:"var(--mod)"},"~ MOD"));
@@ -719,7 +725,7 @@ function selectNode(id){
       (m.fan_in!=null?`fan_in ${m.fan_in} · fan_out ${m.fan_out??"?"}<br>`:"")+
       (m.flows_count!=null?`flows_count ${m.flows_count}<br>`:"")+
       (m.change_coupling!=null?`change_coupling ${m.change_coupling}<br>`:"")+
-      (m.tangle_score!=null?`tangle_score <b style="color:${heatColor(m.tangle_score)}">${m.tangle_score}</b>`:"")+`</div>`;}
+      `product_impact <b style="color:${heatColor(heatValue(n))}">${heatValue(n).toFixed(2)}</b>`+`</div>`;}
   const hot=(DOC.advisory&&DOC.advisory.hotspots||[]).find(h=>h.node===n.display_id||h.node===id);
   if(hot){
     html+=`<h2>♨ hotspot (advisory)</h2><div class="np-ev" style="color:var(--mod);border-left-color:var(--mod)">${esc(hot.recommendation)}</div>`;

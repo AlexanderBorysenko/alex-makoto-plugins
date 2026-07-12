@@ -50,8 +50,8 @@ One JSON document per task, registered with the viewer like PCE maps.
 
 - `meta`: `intent: explain | impact | present`, `task`, `analysis_scope`, `commit_hash`, `generated_at`, `source_root`.
 - `nodes[]`: `kind: capability | role | rule | entity | screen`, `resolution: confirmed | suspected | dismissed`, `evidence`, `source_refs[]`, optional `manifest_ref`.
-- `edges[]`: `kind: uses | affects | governed-by | navigates-to` (+ `suspected_influence` for black-box edges).
-- `journeys[]`: `actor`, `goal`, `variant` label (e.g. "empty cart" / "full cart" / "error"), `steps[]`: `{actor_action, screen, system_response, business_why, screenshot?, source_refs[]}`.
+- `edges[]`: `kind: uses | affects | governed_by | navigates_to` (+ `suspected_influence` for black-box edges).
+- `flows[] (journeys)`: `actor`, `goal`, `variant` label (e.g. "empty cart" / "full cart" / "error"), `steps[]`: `{actor_action, screen, system_response, business_why, screenshot?, source_refs[]}`.
 - `advisory`: impact notes, open questions.
 - Display ids: `C1..` capabilities, `R1..` roles, `BR1..` business rules, `S1..` screens, `E1..` entities, `BB1..` black boxes, `J1` journeys / `J1.s3` steps.
 
@@ -59,7 +59,7 @@ Lint: `spec/lint.mjs` (fork of architect-goggles lint) validates schema conforma
 
 ## Projections
 
-- **CAPABILITY view** (structure): node kinds rendered with distinct shapes; edges `uses / affects / governed-by / navigates-to`; heat overlay = product blast radius for impact tasks; black boxes rendered as in architect-goggles.
+- **CAPABILITY view** (structure): node kinds rendered with distinct shapes; edges `uses / affects / governed_by / navigates_to`; heat overlay = product blast radius for impact tasks; black boxes rendered as in architect-goggles.
 - **JOURNEY view** (behavior): actor lanes (instead of component lifelines); step-by-step playback reusing the sequence playback machinery; **screenshot side-panel** — when the current step carries a `screenshot` ref, the panel shows it, click for full size; steps without screenshots show a placeholder.
 - **Diff mode** (kept from the fork): product-impact renders structural diffs and journey ghost-arrows = flow regressions before any code is written.
 
