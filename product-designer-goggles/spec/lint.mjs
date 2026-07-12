@@ -48,12 +48,14 @@ export function recomputeMetrics(doc) {
 
 /* ---------- journey integrity ---------- */
 
-function checkJourneys(doc, mapDir) {
+function checkJourneys(doc, mapDir, warnings) {
   const errs = [];
   const nodeById = new Map(doc.nodes.map(n => [n.id, n]));
   for (const flow of doc.flows ?? []) {
     if (flow.actor && !nodeById.has(flow.actor))
       errs.push(`journey ${flow.id}: actor '${flow.actor}' is not a node`);
+    else if (flow.actor && nodeById.get(flow.actor).kind !== 'role')
+      warnings.push(`journey ${flow.id}: actor '${flow.actor}' is kind '${nodeById.get(flow.actor).kind}', expected 'role'`);
     for (const step of flow.steps ?? []) {
       if (step.screen) {
         const s = nodeById.get(step.screen);
@@ -89,9 +91,11 @@ export function lintMap(doc, mapDir = process.cwd()) {
     if ((n.resolution === "suspected" || n.resolution === "dismissed") && !n.evidence)
       errors.push(`node ${ref(n.id)}: ${n.resolution} without evidence`);
   }
+  const EDGE_KINDS = new Set(["uses", "affects", "governed_by", "navigates_to", "suspected_influence"]);
   for (const e of doc.edges || []) {
     if (!nodeIds.has(e.from)) errors.push(`edge ${e.display_id || e.id}: from '${e.from}' not a node`);
     if (!nodeIds.has(e.to)) errors.push(`edge ${e.display_id || e.id}: to '${e.to}' not a node`);
+    if (!EDGE_KINDS.has(e.kind)) errors.push(`edge ${e.display_id || e.id}: kind '${e.kind}' not in PJM enum`);
     if (e.kind === "suspected_influence" && !e.evidence)
       errors.push(`edge ${e.display_id || e.id}: suspected_influence without evidence`);
   }
@@ -123,7 +127,7 @@ export function lintMap(doc, mapDir = process.cwd()) {
   }
 
   // Journey integrity: screen refs exist and are kind='screen'; screenshots exist on disk.
-  errors.push(...checkJourneys(doc, mapDir));
+  errors.push(...checkJourneys(doc, mapDir, warnings));
 
   // Deterministic metrics: LLM-written numbers are hard errors.
   const metrics = recomputeMetrics(doc);
