@@ -61,8 +61,13 @@ default. A worktree is the sanctioned exception ONLY when a gate above passes.
   pointing at the registry.
 
 ### W3. WORK IN ISOLATION
-- All file edits, builds, and commits happen inside the worktree.
-- The main repo tree is read-only from this worktree's perspective.
+- All CODE edits, builds, and commits happen inside the worktree.
+- The main repo tree is read-only from this worktree's perspective — EXCEPT
+  `<root>/.claude-memory/`, which is the shared memory hub (GW8).
+- Memory operations (task journals, registry, worktree-notes, deliverables)
+  always target the ROOT repo's `.claude-memory/`. A worktree has no
+  `.claude-memory/` of its own — the dir is gitignored, so a fresh worktree
+  starts without one; never create it there.
 - Subagents inherit the worktree's working dir — see GW5 and the dispatch contract.
 
 ### W4. SYNC
@@ -86,7 +91,8 @@ default. A worktree is the sanctioned exception ONLY when a gate above passes.
 - **GW1. ONE WORKTREE = ONE BRANCH = ONE TASK.** No stacking tasks in one
   worktree — race risk, harder cleanup.
 - **GW2. NO CROSS-WORKTREE WRITES.** An agent dispatched into worktree A never
-  writes to worktree B or to the main repo. Cross-pollination = state corruption.
+  writes to worktree B or to the main repo's TRACKED files. Cross-pollination =
+  state corruption. Sole exception: the root `.claude-memory/` hub (GW8).
 - **GW3. ANNOUNCE BEFORE CREATE.** Tell the user "creating worktree at <path>
   on branch <branch>" and wait for ack on the FIRST worktree of the session.
   Subsequent ones may proceed without ack unless the user revokes.
@@ -103,6 +109,14 @@ default. A worktree is the sanctioned exception ONLY when a gate above passes.
 - **GW7. WORKTREES LIVE INSIDE THE PROJECT, GITIGNORED.** Always under
   `<project-root>/.claude/worktrees/<slug>/`; `.claude/worktrees/` must be
   gitignored. Relocate only via `git worktree move` (W1b).
+- **GW8. ONE MEMORY, AT ROOT.** `.claude-memory/` exists ONLY in the root
+  repository. Every `.claude-memory/` path in this protocol (registry,
+  worktree-notes, task journals) resolves against the ROOT repo, never the
+  worktree. Agents working in a worktree read and write the root hub directly —
+  this is the sanctioned exception to GW2 and enables parallel tasks to share
+  one memory. Worktree = code changes only. Concurrent-write discipline: memory
+  writes stay task-scoped (own journal, own registry row); shared files
+  (registry, worktree-notes) get small append/edit operations, not rewrites.
 
 ## DISPATCH CONTRACT
 
@@ -113,13 +127,15 @@ the subagent's prompt (and the subagent forwards it to its own children):
 working_dir:    <absolute worktree path>
 branch:         <branch checked out in worktree>
 worktree_role:  primary | sibling | experiment
-parent_repo:    <main repo path — read-only reference, no writes>
+parent_repo:    <main repo path — read-only for tracked files, no code writes>
+memory_root:    <main repo path>/.claude-memory — ALL memory reads/writes go here (GW8)
 cleanup_policy: keep | merge-then-remove | remove-after | force-remove (needs user OK)
 ```
 
 ## REGISTRY
 
-`.claude-memory/worktrees.md` — spoke-owned, gitignored, per-project:
+`<root-repo>/.claude-memory/worktrees.md` — spoke-owned, gitignored, per-project,
+always in the ROOT repo (GW8):
 
 ```
 # Worktrees registry
@@ -148,6 +164,8 @@ silently rewrite.
 - Cross-worktree write → reject, redispatch
 - Force-remove without user OK → reject
 - Subagent escapes working_dir → reject, redispatch with explicit path
+- `.claude-memory/` created inside a worktree, or memory written to a worktree-local
+  copy → reject, repoint to root hub (GW8)
 - Session ends with unreviewed dirty worktrees → reject, run GW6
 
 ## USER COMMANDS

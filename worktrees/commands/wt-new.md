@@ -6,11 +6,13 @@ argument-hint: <slug> [base-ref]
 Invoke the `worktrees` skill and create a new worktree following its protocol.
 
 Arguments: `$ARGUMENTS` — a kebab-case slug (becomes path + branch name) and an
-optional base ref (defaults per `.claude-memory/worktree-notes.md`, else the
-repo's main branch).
+optional base ref (defaults per the ROOT repo's `.claude-memory/worktree-notes.md`,
+else the repo's main branch).
+
+All `.claude-memory/` paths resolve against the ROOT repo (GW8) — never a worktree.
 
 Steps (each defined in the skill — follow it, do not improvise):
-1. Read `.claude-memory/worktree-notes.md`; create from the plugin template if missing.
+1. Read `.claude-memory/worktree-notes.md` (root repo); create from the plugin template if missing.
 2. Gate via WHEN TO USE — if no isolation criterion applies, say so and stop.
 3. GW3 announce: state path `.claude/worktrees/<slug>` + branch; first worktree
    of the session waits for user ack.

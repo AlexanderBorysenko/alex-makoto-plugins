@@ -9,7 +9,7 @@
     {
       "name": "orchestrator",
       "source": "./orchestrator",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told."
     },
     {
@@ -39,7 +39,7 @@
     {
       "name": "worktrees",
       "source": "./worktrees",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "description": "Law-governed git worktree protocol for agents: standardized lifecycle (create/announce/isolate/sync/deliver/cleanup), non-negotiable laws (one worktree = one branch = one task, announce before create, no cross-worktree writes), a per-project registry, and /wt-* commands."
     },
     {
