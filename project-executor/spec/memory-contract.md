@@ -91,6 +91,20 @@ Every page starts with an HTML comment stating its purpose, then entries.
 `wiki/<slug>.md`: freeform, but starts with one-sentence purpose and ends with a
   `links:` line of related `[[pages]]`.
 
+## Content boundary — what does NOT belong here
+
+Execution memory stores knowledge needed to RUN things fast: commands, env,
+auth mechanics, browser routines, infra gotchas. It is NOT a store for
+task-domain discoveries.
+
+- Application behavior discovered during a run (endpoint maps, API contracts,
+  data-flow findings, bug evidence) → the task's journal
+  (`.claude-memory/tasks/<slug>.md`) or research findings — never here.
+- Litmus test: "would the NEXT run of a DIFFERENT task need this to execute
+  faster?" Yes → executions memory. No → task-domain store.
+- Gotchas are about the execution environment (tooling, auth walls, broker
+  quirks), not about how the product under test behaves.
+
 ## Init seed templates
 
 `index.md` (regenerated at every distillation — never hand-edited):

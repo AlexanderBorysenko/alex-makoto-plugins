@@ -56,6 +56,13 @@ evidence is insufficient.
 
 ## Flows
 
+### pre-flight (ALL flows, before any probe)
+Read gotchas.md + env.md + the relevant browser.md routine FIRST. If a
+documented gotcha names the target environment as blocked (auth wall, dead
+dependency, missing key), surface the blocker to the caller immediately with
+unblock options — zero probing. A documented blocker rediscovered by probing
+is wasted budget.
+
 ### start / stop
 1. Find `## start:<svc>` / stop info in runbook.md. Stale (>14d) ⇒ verify-while-using:
    run it, and on success re-stamp.
