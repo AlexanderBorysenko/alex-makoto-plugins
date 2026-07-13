@@ -13,3 +13,4 @@ Steps:
 3. Set frontmatter: `title`, `slug`, `status: open`, `created` and `updated` to today's date, `summary:` (one-line description — ask the user for it or derive from the Goal), `topics: []`.
 4. Ask the user for the Goal (1-3 lines) and fill it in.
 5. Confirm to the user in 1-2 lines: the new journal path and the next action.
+6. From now on in this session, when a spoke plugin (researcher, executor, goggles, superpowers…) produces a document for this task, make sure it carries `task-slug: <slug>` in its frontmatter so `mem-index docs --task <slug>` can link it at wrap-up.

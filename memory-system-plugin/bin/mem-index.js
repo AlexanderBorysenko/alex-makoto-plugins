@@ -5,8 +5,15 @@
  * Usage:
  *   node mem-index.js <kind> [--json] [--base <path>]
  *   node mem-index.js all   [--json] [--base <path>]
+ *   node mem-index.js docs  [--json] [--base <path>] [--task <slug>]
  *
- * kind: tasks | arch | findings | all
+ * kind: tasks | arch | findings | all | docs
+ *
+ * `docs` scans the source registry at <base>/sources.json — documents produced
+ * by OTHER plugins (researcher findings, executor reports, superpowers specs…)
+ * — and prints a grouped link index. Registry roots are relative to the project
+ * root (the parent of <base>). Optional frontmatter key `task-slug:` ties a
+ * document to a task journal; --task filters on it.
  */
 
 'use strict';
@@ -14,7 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const KINDS = ['tasks', 'arch', 'findings', 'all'];
+const KINDS = ['tasks', 'arch', 'findings', 'all', 'docs'];
 const VALID_STATUSES = ['open', 'done'];
 
 // Legacy statuses normalize to the current two-state model. There is no longer a
@@ -28,7 +35,7 @@ function normalizeStatus(raw) {
 // ---------- Arg parsing ----------
 
 function parseArgs(argv) {
-  const args = { kind: null, json: false, base: path.join('.', '.claude-memory') };
+  const args = { kind: null, json: false, base: path.join('.', '.claude-memory'), task: null };
   const rest = argv.slice(2);
   if (rest.length === 0) return { error: 'missing subcommand' };
   args.kind = rest[0];
@@ -40,6 +47,10 @@ function parseArgs(argv) {
       i++;
       if (i >= rest.length) return { error: '--base requires a value' };
       args.base = rest[i];
+    } else if (a === '--task') {
+      i++;
+      if (i >= rest.length) return { error: '--task requires a value' };
+      args.task = rest[i];
     } else {
       return { error: `unknown argument: ${a}` };
     }
@@ -52,7 +63,7 @@ function parseArgs(argv) {
 
 function usage() {
   return [
-    'usage: mem-index <tasks|arch|findings|all> [--json] [--base <path>]',
+    'usage: mem-index <tasks|arch|findings|all|docs> [--json] [--base <path>] [--task <slug>]',
   ].join('\n');
 }
 
@@ -350,6 +361,140 @@ function loadFindings(base, warn) {
   return readKind(base, 'findings', ['topic', 'summary'], null, warn);
 }
 
+// ---------- Docs (source registry scan) ----------
+
+const DOCS_SKIP_DIRS = new Set(['node_modules', '.git']);
+
+function walkFiles(dir, out) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (_) {
+    return out;
+  }
+  for (const e of entries) {
+    if (e.isDirectory()) {
+      if (!DOCS_SKIP_DIRS.has(e.name)) walkFiles(path.join(dir, e.name), out);
+    } else if (e.isFile()) {
+      out.push(path.join(dir, e.name));
+    }
+  }
+  return out;
+}
+
+function docTitle(fm, body, filePath) {
+  if (fm && typeof fm.title === 'string' && fm.title !== '') return fm.title;
+  if (fm && typeof fm.task === 'string' && fm.task !== '') return fm.task;
+  const text = body !== null ? body : safeRead(filePath);
+  if (text !== null) {
+    const m = text.match(/^#\s+(.+)$/m);
+    if (m) return m[1].trim();
+  }
+  return path.basename(filePath, '.md');
+}
+
+function docDate(fm, filePath) {
+  for (const key of ['date', 'finished', 'started', 'updated']) {
+    if (fm && fm[key] !== undefined && fm[key] !== '') {
+      return String(fm[key]).slice(0, 10);
+    }
+  }
+  try {
+    return fs.statSync(filePath).mtime.toISOString().slice(0, 10);
+  } catch (_) {
+    return '';
+  }
+}
+
+function safeRead(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Loads the source registry at <base>/sources.json and scans each source's
+ * root (relative to the project root = parent of <base>). Returns
+ * { name: [ { title, date, task, file } ] } with per-source date-desc order.
+ * Sources with no matches (or missing roots) are omitted.
+ */
+function loadDocs(base, taskFilter, warn) {
+  const registryPath = path.join(base, 'sources.json');
+  if (!fs.existsSync(registryPath)) return null;
+  let registry;
+  try {
+    registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+  } catch (e) {
+    warn(`warning: cannot parse ${registryPath}: ${e.message}`);
+    return null;
+  }
+  const sources = Array.isArray(registry.sources) ? registry.sources : [];
+  const projectRoot = path.dirname(path.resolve(base));
+  const groups = {};
+  for (const src of sources) {
+    if (!src || typeof src.name !== 'string' || typeof src.root !== 'string') {
+      warn('warning: sources.json entry missing name/root, skipping');
+      continue;
+    }
+    let matcher;
+    try {
+      matcher = new RegExp(src.match || '\\.md$');
+    } catch (e) {
+      warn(`warning: source ${src.name} has invalid match regex, skipping`);
+      continue;
+    }
+    const rootAbs = path.resolve(projectRoot, src.root);
+    const files = walkFiles(rootAbs, []).filter((f) =>
+      matcher.test(path.relative(rootAbs, f).replace(/\\/g, '/'))
+    );
+    const entries = [];
+    for (const filePath of files) {
+      const raw = safeRead(filePath);
+      if (raw === null) continue;
+      const parsed = parseFrontmatter(raw, filePath, () => {});
+      const fm = parsed && !parsed.malformed ? parsed.frontmatter : null;
+      const body = parsed && !parsed.malformed ? parsed.body : raw;
+      const task =
+        fm && typeof fm['task-slug'] === 'string' && fm['task-slug'] !== ''
+          ? fm['task-slug']
+          : null;
+      if (taskFilter && task !== taskFilter) continue;
+      entries.push({
+        title: docTitle(fm, body, filePath),
+        date: docDate(fm, filePath),
+        task,
+        file: path.relative(projectRoot, filePath).replace(/\\/g, '/'),
+      });
+    }
+    if (entries.length === 0) continue;
+    entries.sort((a, b) => (a.date === b.date ? a.file.localeCompare(b.file) : a.date < b.date ? 1 : -1));
+    groups[src.name] = entries;
+  }
+  return groups;
+}
+
+function formatDocsMarkdown(groups, taskFilter) {
+  if (groups === null) {
+    return '# Documents\n\n_(no sources.json registry in .claude-memory/ — see the memory-system skill to seed one)_\n';
+  }
+  const names = Object.keys(groups);
+  if (names.length === 0) {
+    return `# Documents\n\n_(no documents found${taskFilter ? ` for task \`${taskFilter}\`` : ''})_\n`;
+  }
+  const parts = [`# Documents${taskFilter ? ` — task \`${taskFilter}\`` : ''}\n`];
+  for (const name of names) {
+    parts.push(`\n## ${name}\n`);
+    for (const d of groups[name]) {
+      const taskTag = d.task ? ` — task:${d.task}` : '';
+      parts.push(`- [${d.title}](${d.file}) — ${d.date}${taskTag}`);
+    }
+    parts.push('');
+  }
+  return parts.join('\n').replace(/\n+$/, '\n');
+}
+
 // ---------- Main ----------
 
 function main() {
@@ -358,8 +503,18 @@ function main() {
     process.stderr.write(`error: ${parsed.error}\n${usage()}\n`);
     process.exit(2);
   }
-  const { kind, json, base } = parsed;
+  const { kind, json, base, task } = parsed;
   const warn = (msg) => process.stderr.write(msg + '\n');
+
+  if (kind === 'docs') {
+    const groups = loadDocs(base, task, warn);
+    if (json) {
+      process.stdout.write(JSON.stringify(groups === null ? {} : groups, null, 2) + '\n');
+    } else {
+      process.stdout.write(formatDocsMarkdown(groups, task));
+    }
+    process.exit(0);
+  }
 
   if (kind === 'tasks') {
     const entries = loadTasks(base, warn);

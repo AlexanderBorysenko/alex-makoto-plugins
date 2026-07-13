@@ -7,6 +7,8 @@ const reminder = `Memory system plugin active. If \`./.claude-memory/\` exists i
 3. Let the user's messages reveal what they are resuming. When intent is clear, match it against the index and read only that one task's journal at \`./.claude-memory/tasks/<slug>.md\` (current state only — no historical log). If the first message already names or implies a task, match and load it immediately.
 4. If intent is not yet clear, give a one-line ready signal (e.g. "Memory loaded — N open tasks indexed; what are we picking up?") instead of guessing a task.
 
+Hub-and-spoke: this plugin owns task journals + the cross-plugin document index only. Other plugins (researcher, executor, goggles, superpowers) own their domain memory; link their documents via \`node \${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js docs [--task <slug>]\` — never copy their content into journals.
+
 If \`./.claude-memory/\` does not exist, offer once to initialize it; do not nag again in the same session. See the \`memory-system\` skill for the init template and full workflow.`;
 
 process.stdout.write(reminder + '\n');

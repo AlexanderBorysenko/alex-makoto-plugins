@@ -7,16 +7,38 @@ description: Project memory and task-journal workflow. Use when the user starts 
 
 You are operating with a disciplined project-memory workflow. The journal is the project's current truth, not a diary. Sessions are the interface that produces durable artifacts; the artifacts (Findings, Decisions, Open Questions, Next Steps, Architecture Cache) are what matter. History of how we got somewhere is **not** stored — git is the audit trail when it is needed.
 
+**Memory-system is the HUB, not the warehouse.** Specialized plugins (researcher, project-executor, architect/product-designer goggles, superpowers, and any future planner/implementer) own their domain memory in their own stores. This plugin owns only two things: (1) task-level memory — decisions, current state, next steps — and (2) the **index** that links each task to the documents those other plugins produced. Spoke content is linked, never copied.
+
 ## Memory layout
 
-Two locations, clean split:
+Hub and spokes:
 
-- **Repo memory — `./.claude-memory/`** (in this project's root): project-specific. Architecture cache, task journals, cross-task findings. Single source of truth for anything tied to this project.
+- **Hub — `./.claude-memory/`** (this plugin): task journals (`tasks/`), the durable architecture narrative (`architecture_cache.md` + `arch/`), and the source registry (`sources.json`). First priority: task decisions and state. Second: the cross-plugin document index.
+- **Spokes — other plugins' stores, linked not copied.** Examples (any registered source counts, this list is not closed): `.claude-research/` (researcher: verified findings), `.claude-memory/executions/` (project-executor: runbook wiki, journal, reports), `docs/superpowers/` (specs and plans), goggles map files. Each spoke owns its own format, staleness rules, and lifecycle. **Never write into a spoke store from this skill; never re-verify or restate spoke content in a journal — link it.**
 - **Auto-memory** (harness-managed by Claude Code, lives outside the repo): cross-project / user-level only. Preferences, role context, references to external systems. **You do not manage auto-memory from this skill.**
 
-Never duplicate project-specific content into auto-memory. If it is about this project's code, components, tasks, or decisions, it goes in `./.claude-memory/`.
+Never duplicate project-specific content into auto-memory. If it is about this project's code, components, tasks, or decisions, it goes in `./.claude-memory/` — or in the spoke that owns that fact type, with a link from the journal.
 
-Indexes (task list, component list, findings list) are generated on demand via `bin/mem-index.js` — never stored on disk.
+Indexes (task list, component list, findings list, cross-plugin document list) are generated on demand via `bin/mem-index.js` — never stored on disk.
+
+## Source registry (`sources.json`)
+
+`./.claude-memory/sources.json` declares where spoke plugins keep their documents. `mem-index docs` scans it generically — adding a new plugin means adding one entry here, no code or skill changes:
+
+````json
+{
+  "sources": [
+    { "name": "research-findings", "root": ".claude-research/findings", "match": "\\.md$" },
+    { "name": "execution-reports", "root": ".claude-memory/executions/reports", "match": "report\\.md$" },
+    { "name": "superpowers-specs", "root": "docs/superpowers/specs", "match": "\\.md$" },
+    { "name": "superpowers-plans", "root": "docs/superpowers/plans", "match": "\\.md$" }
+  ]
+}
+````
+
+- `root` is project-root-relative; `match` is a regex over the path relative to `root`. Missing roots are skipped silently — registering a source for a plugin that is not installed yet is fine.
+- **Task tagging contract:** a spoke document that belongs to a task carries `task-slug: <slug>` in its frontmatter (the journal's slug). Spokes stamp it when a task is in focus; `mem-index docs --task <slug>` filters on it. Untagged documents still appear in the unfiltered index.
+- Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js docs [--task <slug>]` for the grouped link index. Pull model: this hub scans at wrap-up; spokes never write into the hub.
 
 ## Startup ritual
 
@@ -35,6 +57,8 @@ Token budget target: startup reads (narrative cache + index) <= ~120 lines; load
 ## Architecture cache
 
 Pattern: narrative file + per-component detail files + script-generated component index.
+
+Scope note (hub-and-spoke): the narrative + `arch/` pages hold the **durable** project architecture only. Task-scoped architecture artifacts (goggles PCE maps, flow traces, impact diffs) are spoke documents — register their location in `sources.json` and link them from the task journal instead of restating them here.
 
 - `architecture_cache.md` is a **narrative-only** file. It contains parts of the architecture that are not naturally per-component: project overview, DevOps surface, conventions, known gotchas. It contains **no component table**. Target <= 80 lines.
 - Each component lives at `arch/<component>.md` with required frontmatter:
@@ -98,7 +122,10 @@ topics: [tag1, tag2]
 1-3 lines. What "done" looks like.
 
 ## Related Documents
-Every .md this task depends on or produces, with one-line role notes.
+Every doc this task depends on or produces, with one-line role notes. Two kinds of lines:
+- hand-noted links (anything worth a role note), and
+- generated links folded in at wrap-up from `mem-index docs --task <slug>` (spoke documents stamped with this task's slug).
+Links only — never paste spoke content here.
 
 ## Key Findings
 Durable facts learned. Code locations (`path:line`), gotchas, surprises. Current state only — when invalidated, replace in place; do not retain superseded entries.
@@ -144,14 +171,16 @@ Wrap-up operates on the **task(s) worked on this session** — identified from c
    - Edit Decisions in place: prune reversed entries; add new decisions with rationale.
    - Update Open Questions: remove resolved, add new.
    - Rewrite Next Steps so the first bullet is the immediate next action.
-2. **Cascade to Related Documents:**
+2. **Link spoke documents:** run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js docs --task <slug>` and fold any new links into the journal's Related Documents (link + one-line role note; no content copying). If a document produced this session belongs to this task but lacks the `task-slug:` stamp, add the stamp to its frontmatter rather than hand-writing an unstamped link.
+3. **Cascade to Related Documents:**
    - Plans -> mark steps done/in-progress, note scope shifts.
    - Specs / design docs -> update if decisions changed the design.
    - Architecture cache (narrative file) -> update **immediately** if architecture changed.
    - `arch/<component>.md` files -> create, rename, or delete as needed. The component index follows automatically — no separate index to maintain.
    - Mark obsolete or superseded related docs accordingly.
-3. **Cross-task findings:** if any Finding in the wrapped-up task overlaps a finding in another open/recent task, promote to a shared topic file at `findings/<topic>.md` and link from each journal.
-4. **Verify before claiming done:** state which files were updated and the new Next Steps first bullet, in 2-3 lines max.
+   - Spoke-owned documents (findings, reports, wiki pages) are NOT edited from here — their plugins own them.
+4. **Cross-task findings:** if any Finding in the wrapped-up task overlaps a finding in another open/recent task, promote it. **If the researcher plugin's `.claude-research/` store exists, promote there** (it owns verified facts, with citations and staleness) and link from each journal; only fall back to a local `findings/<topic>.md` when no researcher store exists.
+5. **Verify before claiming done:** state which files were updated and the new Next Steps first bullet, in 2-3 lines max.
 
 ## Resuming, archiving, purging
 
@@ -164,7 +193,9 @@ There is no "switch active task" operation, because no task is ever marked activ
 
 ## Cross-task findings
 
-When a Finding appears across two or more per-task journals, promote it to a shared topic file at `./.claude-memory/findings/<topic>.md` and link from each journal's Findings section.
+**Deprecated in favor of the researcher spoke.** When `.claude-research/` exists, cross-task verified facts belong there (researcher owns citations + git-HEAD staleness); journals link to the finding doc. The local mechanism below remains only as a fallback for projects without the researcher plugin.
+
+When a Finding appears across two or more per-task journals (and no researcher store exists), promote it to a shared topic file at `./.claude-memory/findings/<topic>.md` and link from each journal's Findings section.
 
 Topic file structure:
 
@@ -196,7 +227,7 @@ Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js findings` to obtain the current
 
 **Use `mem-index <kind>` for lists; Grep for content.**
 
-1. Need a list (tasks / components / findings)? Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js <kind>`. Never grep for it; never read a stale on-disk index — there is none.
+1. Need a list (tasks / components / findings / cross-plugin documents)? Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js <kind>` (`docs [--task <slug>]` for spoke documents). Never grep for it; never read a stale on-disk index — there is none.
 2. Looking for a specific topic across journal bodies? Use Grep against `./.claude-memory/` to locate matching sections, then read only the matched section — not the whole file.
 3. Do not bulk-read all per-task journals at startup — load a journal only once its task is in focus.
 
@@ -214,6 +245,8 @@ Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js findings` to obtain the current
 - Do not journal code already in git history.
 - Do not journal architecture facts already in the cache.
 - Do not journal narrating-the-session content. Only durable, non-derivable insights.
+- Do not copy spoke-plugin content (findings, reports, wiki pages, specs) into a journal — stamp `task-slug:` and link via `mem-index docs`.
+- Do not write into spoke stores from this skill; each spoke plugin maintains its own memory.
 - Do not delete journals without explicit user confirmation.
 - Do not create a per-task journal for trivial one-off edits.
 
@@ -222,8 +255,8 @@ Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js findings` to obtain the current
 If `./.claude-memory/` does not exist when the startup ritual fires:
 
 1. Offer **once**:
-   > "No `.claude-memory/` found here. Want me to initialize it? I'll scaffold `architecture_cache.md` (empty narrative template) and the `tasks/`, `arch/`, `findings/` directories. There is no on-disk task or findings index — `mem-index` derives those from per-file frontmatter on demand. I won't fill the architecture cache automatically — that happens on the first real task."
-2. If yes: create the one template file and the three empty directories below.
+   > "No `.claude-memory/` found here. Want me to initialize it? I'll scaffold `architecture_cache.md` (empty narrative template), the `tasks/`, `arch/`, `findings/` directories, and `sources.json` (registry of other plugins' document stores for the cross-plugin index). I won't fill the architecture cache automatically — that happens on the first real task."
+2. If yes: create the template files and the three empty directories below, including `sources.json` seeded with the registry template from the Source registry section (keep entries whose plugins are absent — missing roots are skipped at scan time).
 3. If no: stay quiet for the rest of the session.
 
 ### Template: `architecture_cache.md` (narrative only — no component table)
@@ -256,6 +289,8 @@ Use the structure documented in the Task journals section above (including the `
 ### Directories to create
 - `tasks/`
 - `arch/`
-- `findings/`
+- `findings/` (legacy fallback — see Cross-task findings)
 
-No master task index file or findings index file is created. Those indexes are derived on demand by `bin/mem-index.js` from per-file frontmatter.
+Plus `sources.json` from the Source registry template.
+
+No master task index file or findings index file is created. Those indexes — and the cross-plugin document index (`mem-index docs`) — are derived on demand by `bin/mem-index.js`.

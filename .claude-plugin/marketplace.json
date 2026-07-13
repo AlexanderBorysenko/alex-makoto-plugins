@@ -8,7 +8,7 @@
     {
       "name": "memory-system",
       "source": "./memory-system-plugin",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "description": "Project memory and task-journal workflow with on-demand index generation."
     },
     {
@@ -26,7 +26,7 @@
     {
       "name": "researcher",
       "source": "./researcher",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory."
     },
     {
