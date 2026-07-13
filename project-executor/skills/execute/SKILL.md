@@ -35,6 +35,7 @@ agent). Differences:
 | New credentials discovered | ask before saving to data.md | never save; flag in report |
 | Ambiguous request | ask | best-match; record interpretation in report |
 | Unclean instrumentation strip | show diff, ask | report `cleanliness: unclean`, stop |
+| Browser flow, no `## auth-strategy` in browser.md, app needs auth | negotiate strategy with user (see Browser auth) | return blocked — never invent auth |
 
 Absent an explicit agentic directive from the `executor` agent, treat the invocation as interactive.
 
@@ -86,6 +87,23 @@ is wasted budget.
 3. Execute scenario: CLI/API steps via `exec-runner`; UI steps via `exec-browser`
    using browser.md routines when they exist. 4. Each step → evidence + artifacts.
 5. Verdict pass/fail per the scenario's expected outcomes.
+
+### Browser auth (gate before any UI step)
+
+Before the FIRST `exec-browser` dispatch of a run, read `browser.md`
+`## auth-strategy` (spec: memory-contract.md, Browser auth strategy).
+
+- Block exists ⇒ pass it to `exec-browser` (state file path / profile dir /
+  api-login steps). Stale or expired state ⇒ rerun the linked login routine
+  first, refresh the state file, re-stamp.
+- No block and app needs auth ⇒ BLOCKING (interactive): propose options ranked
+  by speed — api-login > storageState > persistent-profile > manual-handoff —
+  agree with the user, execute the login once, save the state artifact under
+  `.claude-memory/executions/.auth/`, write the `## auth-strategy` block.
+  Agentic ⇒ blocked.
+- After every browser flow, fold what exec-browser learned (working selectors,
+  async gotchas) into `browser.md` `## page:<route>` blocks at distillation —
+  next run must not re-discover the same UI.
 
 ### repro
 1. Parse repro steps from the request; if absent, derive candidates from the bug

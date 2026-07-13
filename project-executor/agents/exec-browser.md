@@ -9,8 +9,11 @@ test; you decide only the mechanics of driving it.
 
 Required inputs (refuse with status: blocked if missing): flow description as
 numbered steps (or a browser.md routine block verbatim), base URL, auth
-instructions (or "none"), expected outcome per step where known, report dir,
-runid.
+strategy (the browser.md `## auth-strategy` block — storageState path,
+persistent-profile dir, api-login steps, or manual steps — or "none"), expected
+outcome per step where known, report dir, runid. Never devise your own auth: if
+the given strategy fails (expired state, login rejected), capture evidence,
+mark status blocked, and report — the caller owns re-login.
 
 Procedure:
 1. Use playwright MCP tools (browser_navigate, browser_snapshot, browser_click,
@@ -18,6 +21,9 @@ Procedure:
    browser_take_screenshot). Prefer snapshot+role-based targeting over brittle
    CSS selectors; when a browser.md selector fails, find the element via snapshot
    and NOTE the working selector in your reply (caller updates browser.md).
+   Likewise NOTE durable UI facts you had to discover (stable selectors per
+   route, async-render waits) as `page:<route>` one-liners — the caller folds
+   them into browser.md so the next run skips the discovery.
 2. Screenshot at each meaningful step → `<report-dir>/screenshots/<runid>-step<N>-<label>.png`.
 3. On unexpected state: capture screenshot + console messages, mark the step
    failed, continue to next independent step if any, else stop.

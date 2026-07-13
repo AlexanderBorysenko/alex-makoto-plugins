@@ -85,11 +85,42 @@ Every page starts with an HTML comment stating its purpose, then entries.
 
 `env.md`: one `##` per service/prereq with ports, versions, env vars.
 `data.md`: one `##` per dataset/user. Credentials marked `local-only: true`.
-`browser.md`: `## routine:<name>` blocks — goal, start URL, auth steps, selectors, expected outcome.
+`browser.md`: three block kinds —
+  `## auth-strategy` (at most one; decided once with the user, see Browser auth
+  strategy below) — strategy (`storageState` | `persistent-profile` | `api-login`
+  | `manual-handoff` | `none`), state/profile path, login routine link, staleness
+  behavior ("state expired → rerun [[browser]]#routine:login").
+  `## routine:<name>` blocks — goal, start URL, auth steps, selectors, expected outcome.
+  `## page:<route>` blocks — stable selectors, async/layout gotchas
+  ("table renders async, wait for `[data-loaded]`"), written back after flows.
 `gotchas.md`: `## <symptom>` blocks — symptom, cause, resolution, `verified:` date.
   Instrumentation points: `## trace-point:<topic>` — file:line, what to log, why useful.
 `wiki/<slug>.md`: freeform, but starts with one-sentence purpose and ends with a
   `links:` line of related `[[pages]]`.
+
+## Browser auth strategy
+
+Auth is the slowest, flakiest part of every browser flow — decide it ONCE per
+project, persist it in `browser.md` `## auth-strategy`, reuse it every run.
+
+- **First browser flow in a project with no `## auth-strategy` block:**
+  interactive ⇒ BLOCK and negotiate with the user before driving any UI —
+  propose options ranked by speed; agentic ⇒ if the app needs auth, return
+  `blocked` (never invent auth).
+- Options, ranked (propose the fastest the app supports):
+  1. `api-login` — hit the login endpoint / set token directly, no UI. Fastest.
+  2. `storageState` — login once via `routine:login`, save Playwright storage
+     state to `.claude-memory/executions/.auth/state.json`, inject into every
+     context. Default proposal; safe for parallel flows.
+  3. `persistent-profile` — project-scoped `user-data-dir` at
+     `.claude-memory/executions/.browser-profile/`, user logs in manually once.
+     For OAuth/MFA/third-party logins where cookies alone don't survive.
+     Gotcha: locks the browser to one instance — parallel flows break.
+  4. `manual-handoff` — agent opens the browser, user logs in, agent continues.
+     Fallback; record it so the next run proposes an upgrade.
+- Staleness: expired state ⇒ rerun the linked login routine, refresh the state
+  file, re-stamp `verified:`. Record the expiry behavior in the block; do not
+  build refresh machinery beyond "rerun login routine".
 
 ## Content boundary — what does NOT belong here
 
@@ -197,3 +228,9 @@ surfaces schema drift from the contract defaults.
 
 `data.md` may hold local test credentials. Interactive: ask before saving a new
 credential. Agentic: NEVER auto-save new credentials — flag them in the report.
+
+Auth state artifacts (`.auth/state.json`, `.browser-profile/`) ARE live
+credentials: they must live under `.claude-memory/executions/` so the gitignore
+guard covers them; verify with `git check-ignore` before first save and WARN if
+the repo would commit them. Agentic: never save new auth state — flag in the
+report, same as credentials.
