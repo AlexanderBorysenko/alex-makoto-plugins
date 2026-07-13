@@ -1,19 +1,21 @@
 ---
-name: memory-system
-description: Project memory and task-journal workflow. Use when the user starts work, switches or wraps up a task, references the architecture cache, asks about prior sessions, or types any of the `/mem-*` slash commands. Auto-invoked at session start via SessionStart hook.
+name: tasks-manager
+description: Task-journal and cross-plugin memory-index workflow (formerly memory-system). Use when the user starts work, switches or wraps up a task, references the architecture cache, asks about prior sessions, or types any of the `/task-*` or legacy `/mem-*` slash commands. Auto-invoked at session start via SessionStart hook.
 ---
 
-# Memory System
+# Tasks Manager
 
-You are operating with a disciplined project-memory workflow. The journal is the project's current truth, not a diary. Sessions are the interface that produces durable artifacts; the artifacts (Findings, Decisions, Open Questions, Next Steps, Architecture Cache) are what matter. History of how we got somewhere is **not** stored — git is the audit trail when it is needed.
+You are operating with a disciplined task-memory workflow. The journal is the task's current truth, not a diary. Sessions are the interface that produces durable artifacts; the artifacts (Findings, Decisions, Open Questions, Next Steps, linked documents) are what matter. History of how we got somewhere is **not** stored — git is the audit trail when it is needed.
 
-**Memory-system is the HUB, not the warehouse.** Specialized plugins (researcher, project-executor, architect/product-designer goggles, superpowers, and any future planner/implementer) own their domain memory in their own stores. This plugin owns only two things: (1) task-level memory — decisions, current state, next steps — and (2) the **index** that links each task to the documents those other plugins produced. Spoke content is linked, never copied.
+**Karpathy LLM-wiki framing:** this hub is already the compiled layer of a Karpathy-style memory. Spoke documents (findings, reports, specs, maps) are the immutable raw sources; task journals are the compiled current-truth pages (replace in place, never accumulate history); `mem-index` is the always-regenerated index; this skill is the schema; git is the archive. Wrap-up IS the distillation pass — there is no separate one.
+
+**Tasks-manager is the HUB, not the warehouse.** Specialized plugins (researcher, project-executor, architect/product-designer goggles, superpowers, and any future planner/implementer) own their domain memory in their own stores. This plugin owns only two things: (1) task-level memory — decisions, current state, next steps — and (2) the **index** that links each task to the documents those other plugins produced. Spoke content is linked, never copied.
 
 ## Memory layout
 
 Hub and spokes:
 
-- **Hub — `./.claude-memory/`** (this plugin): task journals (`tasks/`), the durable architecture narrative (`architecture_cache.md` + `arch/`), and the source registry (`sources.json`). First priority: task decisions and state. Second: the cross-plugin document index.
+- **Hub — `./.claude-memory/`** (this plugin; directory name kept for compatibility — project-executor and existing projects depend on it): task journals (`tasks/`), the source registry (`sources.json`), and — hosted, not owned — the durable architecture narrative (`architecture_cache.md` + `arch/`). The narrative is project notes this hub keeps until a dedicated architecture spoke owns durable arch docs; do not grow it beyond its templates. First priority: task decisions and state. Second: the cross-plugin document index.
 - **Spokes — other plugins' stores, linked not copied.** Examples (any registered source counts, this list is not closed): `.claude-research/` (researcher: verified findings), `.claude-memory/executions/` (project-executor: runbook wiki, journal, reports), `docs/superpowers/` (specs and plans), goggles map files. Each spoke owns its own format, staleness rules, and lifecycle. **Never write into a spoke store from this skill; never re-verify or restate spoke content in a journal — link it.**
 - **Auto-memory** (harness-managed by Claude Code, lives outside the repo): cross-project / user-level only. Preferences, role context, references to external systems. **You do not manage auto-memory from this skill.**
 
@@ -42,7 +44,7 @@ Indexes (task list, component list, findings list, cross-plugin document list) a
 
 ## Startup ritual
 
-Triggered at session start (via SessionStart hook) or by `/mem-start`.
+Triggered at session start (via SessionStart hook) or by `/task-start` (legacy alias: `/mem-start`).
 
 There is **no "current/active" task**. Startup is index-first and lazy: load the lightweight index, then let the user's messages reveal which task is being resumed, and load only that journal on demand.
 
@@ -160,7 +162,7 @@ Concrete, ordered. The first bullet is the immediate next action.
 
 ## Wrap-up protocol
 
-Triggered by phrases (`wrap up`, `end session`, `save progress`, `compress`, `handoff`, etc.) or `/mem-wrap-up` / `/mem-end-session`.
+Triggered by phrases (`wrap up`, `end session`, `save progress`, `compress`, `handoff`, etc.) or `/task-wrap-up` (legacy aliases: `/mem-wrap-up`, `/mem-end-session`).
 
 Wrap-up operates on the **task(s) worked on this session** — identified from conversation context, not from any status flag. If more than one task was touched, wrap up each. If which task to finalize is genuinely ambiguous, ask the user before editing.
 
@@ -187,7 +189,7 @@ Wrap-up operates on the **task(s) worked on this session** — identified from c
 There is no "switch active task" operation, because no task is ever marked active. You move between tasks simply by talking about them.
 
 - **Resuming a task** — when the user mentions a task (by slug, title, topic, or subject), match it against `mem-index tasks` and read only that journal, then surface its Next Steps. No status change is involved; loading a journal is just retrieval. Multiple tasks can be in focus within one session.
-- **`/mem-new-task <slug-or-description>`** or `new task: <description>` — create a new per-task journal from the template with `status: open` and a populated `summary:` in frontmatter. Existing tasks are left as-is.
+- **`/task-new <slug-or-description>`** or `new task: <description>` — create a new per-task journal from the template with `status: open` and a populated `summary:` in frontmatter. Existing tasks are left as-is.
 - **`done` / `close task`** — flip frontmatter `status:` to `done`. Run the wrap-up protocol once more to finalize.
 - **`purge journal` / `clean slate`** — delete **only** explicitly named per-task files. Never delete journals without explicit user confirmation. There is no master-index file to edit.
 
@@ -282,7 +284,7 @@ If `./.claude-memory/` does not exist when the startup ritual fires:
 - _(empty)_
 ````
 
-### Per-task template (for `/mem-new-task`)
+### Per-task template (for `/task-new`)
 
 Use the structure documented in the Task journals section above (including the `summary:` frontmatter field).
 

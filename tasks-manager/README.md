@@ -1,4 +1,4 @@
-# memory-system
+# tasks-manager (formerly memory-system)
 
 A Claude Code plugin that packages a disciplined project-memory and task-journal workflow into a generic, drop-in artifact.
 
@@ -13,7 +13,7 @@ The journal is the project's current truth, not a diary. Sessions are the interf
 - **Dynamic indexes** — `bin/mem-index.js` generates the task / component / findings indexes on demand from per-file frontmatter. Nothing to keep in sync.
 - **Cross-task findings** — durable facts shared across tasks live in `./.claude-memory/findings/<topic>.md`.
 - **SessionStart hook** — quietly reminds Claude to run the startup ritual (load the index, not a specific task).
-- **Slash commands** — `/mem-start`, `/mem-new-task`, `/mem-wrap-up`, `/mem-end-session`.
+- **Slash commands** — `/task-start`, `/task-new`, `/task-wrap-up`, `/task-wrap-up (legacy: /mem-end-session)`.
 
 ## Install
 
@@ -21,12 +21,12 @@ This plugin is distributed through the **`alex-makoto-plugins`** marketplace. Fr
 
 ```
 claude plugin marketplace add AlexanderBorysenko/alex-makoto-plugins
-claude plugin install memory-system@alex-makoto-plugins
+claude plugin install tasks-manager@alex-makoto-plugins
 ```
 
 Then **fully restart Claude Code** so the hook, commands, and skill load. On the next session start the SessionStart hook fires; if `./.claude-memory/` does not exist, Claude offers to initialize it once.
 
-To update later: `claude plugin update memory-system@alex-makoto-plugins` (or it refreshes at startup if the marketplace has `autoUpdate` enabled).
+To update later: `claude plugin update tasks-manager@alex-makoto-plugins` (or it refreshes at startup if the marketplace has `autoUpdate` enabled).
 
 **Prerequisites:** Node.js available on PATH (used by the SessionStart hook script).
 
@@ -34,16 +34,16 @@ To update later: `claude plugin update memory-system@alex-makoto-plugins` (or it
 
 | Command | What it does |
 |---|---|
-| `/mem-start` | Run the startup ritual now (load architecture cache + open-task index; no task auto-loaded). |
-| `/mem-new-task <slug-or-description>` | Create a new per-task journal. |
-| `/mem-wrap-up` | Prune, update, cascade, report — finalize the task(s) worked on this session. |
-| `/mem-end-session` | Alias for `/mem-wrap-up`. |
+| `/task-start` | Run the startup ritual now (load architecture cache + open-task index; no task auto-loaded). |
+| `/task-new <slug-or-description>` | Create a new per-task journal. |
+| `/task-wrap-up` | Prune, update, cascade, report — finalize the task(s) worked on this session. |
+| `/task-wrap-up (legacy: /mem-end-session)` | Alias for `/task-wrap-up`. |
 
 Trigger phrases (`wrap up`, `end session`, `new task:`, etc.) also work — the skill auto-invokes on these. To resume an existing task, just mention it; Claude matches it against the index and loads its journal.
 
 ## CLI utility
 
-Beyond the slash commands, the plugin ships a Node script you can run directly from your shell. Inside Claude Code the skill invokes it as `${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js`; from a plain shell, point at the installed copy (a marketplace install lives under the plugin cache, e.g. `~/.claude/plugins/cache/alex-makoto-plugins/memory-system/<version>/bin/mem-index.js`):
+Beyond the slash commands, the plugin ships a Node script you can run directly from your shell. Inside Claude Code the skill invokes it as `${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js`; from a plain shell, point at the installed copy (a marketplace install lives under the plugin cache, e.g. `~/.claude/plugins/cache/alex-makoto-plugins/tasks-manager/<version>/bin/mem-index.js`):
 
 ```
 node <plugin-root>/bin/mem-index.js tasks

@@ -25,7 +25,7 @@ Claude Code plugin: deterministic research orchestration. v0.3.0.
 ## Boundaries
 
 - Orchestrates graphify/Serena/context-mode — does not wrap or replace them.
-- `.claude-memory/` (memory-system plugin) = what we're doing; `.claude-research/` = what we verified true. No cross-writes.
+- `.claude-memory/` (tasks-manager plugin) = what we're doing; `.claude-research/` = what we verified true. No cross-writes.
 - No silent expensive ops: graphify indexing always needs explicit approval.
 
 ## Tests

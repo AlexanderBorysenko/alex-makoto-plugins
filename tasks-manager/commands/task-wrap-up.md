@@ -1,8 +1,8 @@
 ---
-description: Run the memory system wrap-up protocol — prune, update, cascade, report.
+description: Run the tasks-manager wrap-up protocol — prune, update, link spoke docs, cascade, report.
 ---
 
-Invoke the `memory-system` skill and execute the **Wrap-up protocol** against the task(s) worked on this session.
+Invoke the `tasks-manager` skill and execute the **Wrap-up protocol** against the task(s) worked on this session.
 
 Steps:
 1. Identify the task worked on this session from conversation context — there is no `status: active` flag. If more than one task was touched, wrap up each. If the target is genuinely ambiguous, ask the user before editing. Use `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js tasks` only to resolve the exact slug/path of the task in focus.

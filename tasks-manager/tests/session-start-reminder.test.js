@@ -7,7 +7,7 @@ const script = path.join(__dirname, '..', 'hooks', 'session-start-reminder.js');
 const out = execFileSync('node', [script], { encoding: 'utf8' });
 
 assert.ok(
-  out.includes('Memory system plugin active'),
+  out.includes('Tasks-manager plugin active'),
   `expected reminder banner, got: ${out}`
 );
 assert.ok(

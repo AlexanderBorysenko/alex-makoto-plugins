@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const reminder = `Memory system plugin active. If \`./.claude-memory/\` exists in this project, run the startup ritual now:
+const reminder = `Tasks-manager plugin active (formerly memory-system). If \`./.claude-memory/\` exists in this project, run the startup ritual now:
 
 1. Read \`./.claude-memory/architecture_cache.md\` (the narrative file — project overview, DevOps, conventions, gotchas).
 2. Run \`node \${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js tasks\` and read its output to load the index of open tasks. Do NOT read any task journal yet — there is no "current/active" task to auto-load.
@@ -9,6 +9,6 @@ const reminder = `Memory system plugin active. If \`./.claude-memory/\` exists i
 
 Hub-and-spoke: this plugin owns task journals + the cross-plugin document index only. Other plugins (researcher, executor, goggles, superpowers) own their domain memory; link their documents via \`node \${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js docs [--task <slug>]\` — never copy their content into journals.
 
-If \`./.claude-memory/\` does not exist, offer once to initialize it; do not nag again in the same session. See the \`memory-system\` skill for the init template and full workflow.`;
+If \`./.claude-memory/\` does not exist, offer once to initialize it; do not nag again in the same session. See the \`tasks-manager\` skill for the init template and full workflow.`;
 
 process.stdout.write(reminder + '\n');

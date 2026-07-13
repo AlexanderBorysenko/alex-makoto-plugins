@@ -1,0 +1,8 @@
+{
+  "name": "tasks-manager",
+  "version": "0.4.0",
+  "description": "Task journals + cross-plugin memory index (hub-and-spoke, Karpathy LLM-wiki framing). Formerly memory-system: spokes own domain memory; this hub owns task state and the link index.",
+  "author": {
+    "name": "alex.borysenko"
+  }
+}

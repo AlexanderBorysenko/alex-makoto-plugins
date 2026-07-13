@@ -3,7 +3,7 @@ title: <short title>
 date: <YYYY-MM-DD>
 level: <L1|L2|L3>
 head: <git rev-parse HEAD at write time>
-task-slug: <memory-system task journal slug — remove this line if no task is in focus>
+task-slug: <tasks-manager task journal slug — remove this line if no task is in focus>
 files:
   - <evidence file path 1>
   - <evidence file path 2>
