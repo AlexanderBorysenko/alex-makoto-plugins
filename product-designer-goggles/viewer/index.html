@@ -883,7 +883,8 @@ function updateShotPanel(step, mapBaseUrl){
       // (server resolves against dirname(mapPath), guarded). Fallback to old
       // base-URL resolution for the bundled example (no ?path query).
       const mp=new URL(location.href).searchParams.get("path");
-      if(mp) href=`/asset?mapPath=${encodeURIComponent(mp)}&rel=${encodeURIComponent(s)}`;
+      const root=DOC&&DOC.meta&&DOC.meta.source_root;
+      if(mp&&root) href=`/asset?mapPath=${encodeURIComponent(mp)}&rel=${encodeURIComponent(s)}&root=${encodeURIComponent(root)}`;
       else{ try{href=new URL(s,mapBaseUrl).href;}catch(e){href=null;} }
     }
     if(!href){showEmpty();return;}

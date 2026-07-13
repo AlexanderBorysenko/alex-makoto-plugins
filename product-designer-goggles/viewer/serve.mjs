@@ -57,21 +57,29 @@ http.createServer(async (req, res) => {
       }
     }
 
-    // static asset relative to a map's directory: /asset?mapPath=<abs.json>&rel=<rel>
-    // Resolves <rel> against dirname(mapPath); refuses to escape. Backs contract §7
-    // ("step.screenshot = path relative to the MAP FILE") so screenshots load in the
-    // browser even though location.href is /mapfile, not the map's directory.
+    // static asset relative to a map's directory: /asset?mapPath=<abs.json>&rel=<rel>&root=<abs>
+    // Resolves <rel> against dirname(mapPath); refuses to escape <root> (meta.source_root).
+    // Backs contract §7 ("step.screenshot = path relative to the MAP FILE") so screenshots
+    // load in the browser even though location.href is /mapfile, not the map's directory.
+    // Screenshots per §9 live under .claude-memory/product/assets/ (sibling to maps/) or
+    // under .claude-memory/deliverables/ — both escape dirname(mapPath), so the escape
+    // guard is meta.source_root, not the map dir.
     if (url.pathname === "/asset") {
       const mapPath = url.searchParams.get("mapPath") || "";
       const rel = url.searchParams.get("rel") || "";
+      const root = url.searchParams.get("root") || "";
       if (!mapPath || !rel) { res.writeHead(400, jsonHead); return res.end('{"error":"mapPath and rel required"}'); }
+      if (!root) { res.writeHead(400, jsonHead); return res.end('{"error":"root (meta.source_root) required"}'); }
       const mapAbs = resolve(mapPath);
       const mapDir = mapAbs.substring(0, mapAbs.lastIndexOf(sep));
-      const abs = within(mapDir, rel);
-      if (!abs) { res.writeHead(403, jsonHead); return res.end('{"error":"outside map dir"}'); }
+      const resolved = resolve(mapDir, rel);
+      const rootAbs = resolve(root);
+      const under = resolved === rootAbs
+        || resolved.toLowerCase().startsWith(rootAbs.toLowerCase() + sep);
+      if (!under) { res.writeHead(403, jsonHead); return res.end('{"error":"outside source_root"}'); }
       try {
-        const body = await readFile(abs);
-        res.writeHead(200, { "content-type": MIME[extname(abs)] || "application/octet-stream", "cache-control": "no-store" });
+        const body = await readFile(resolved);
+        res.writeHead(200, { "content-type": MIME[extname(resolved)] || "application/octet-stream", "cache-control": "no-store" });
         return res.end(body);
       } catch { res.writeHead(404, jsonHead); return res.end('{"error":"read failed"}'); }
     }
