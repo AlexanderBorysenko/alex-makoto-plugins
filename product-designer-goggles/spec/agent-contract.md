@@ -2,7 +2,7 @@
 
 Law for agents generating PJM documents. Schema: `spec/schema.v0.1.json`;
 validation: `node spec/lint.mjs <map.json>` — a map that fails lint is never
-registered with the viewer or exported.
+opened in the viewer or exported.
 
 ## §1 Ephemerality
 Maps are per-task. Stamp `generated_at` and `commit_hash` (`git rev-parse HEAD`).

@@ -1,6 +1,6 @@
 // PCE map lint — deterministic metric recompute + advisory/hotspot consistency.
 // Usage: node lint.mjs <map.json>            (CLI)
-//        import { lintMap } from "./lint.mjs" (register-map.mjs)
+//        import { lintMap } from "./lint.mjs" (programmatic)
 //
 // Design (agent-contract §7): the LLM never selects hotspots and never writes
 // metric numbers. Both are recomputed here from the map itself; mismatches are

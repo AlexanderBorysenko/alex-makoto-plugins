@@ -1,5 +1,5 @@
 // PCE viewer server. Usage: node serve.mjs [port]
-// Serves the viewer + registered maps. Maps live in ./maps/<hash>.json (see register-map.mjs).
+// Serves the viewer. Maps load live by absolute path: /?path=<abs path to map.json> (see /mapfile).
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
@@ -81,4 +81,4 @@ http.createServer(async (req, res) => {
   } catch {
     res.writeHead(404); res.end("not found");
   }
-}).listen(PORT, () => console.log(`PCE viewer: http://localhost:${PORT}  (map: /?map=<hash>, example: /?map=example)`));
+}).listen(PORT, () => console.log(`PCE viewer: http://localhost:${PORT}  (map: /?path=<abs path to map.json>, or / for the bundled example)`));

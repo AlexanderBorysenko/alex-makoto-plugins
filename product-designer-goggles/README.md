@@ -40,7 +40,9 @@ placeholders and everything else still works. Decks are self-contained HTML
 Outputs land in the target project at `.claude-memory/product/`
 (maps/, assets/, decks/ — gitignored).
 
-Viewer quickstart: `cd viewer && node serve.mjs` → http://localhost:4173,
-`node register-map.mjs <map.json>` to register.
+Viewer quickstart: `cd viewer && node serve.mjs` → http://localhost:4173, then open
+`http://localhost:4173/?path=<url-encoded absolute path to map.json>`. The viewer reads the
+file live from disk (edit + refresh = the whole update loop). Run each goggle's viewer on its
+own port (`node serve.mjs 4173`, `node serve.mjs 4174`) when showing more than one.
 
 Design spec: `docs/superpowers/specs/2026-07-12-product-designer-goggles-design.md`.

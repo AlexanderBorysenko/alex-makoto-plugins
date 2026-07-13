@@ -27,4 +27,4 @@ Resolves `suspected` nodes on an existing map. Obey `spec/agent-contract.md` §2
 4. For human "confirm-from-experience" answers: apply as confirmed with the human's description
    in `summary`, and OFFER to append the fact to the environment manifest so it becomes a
    permanent generation input.
-5. Update `scan_coverage`, re-register the map.
+5. Update `scan_coverage`, save the map file in place (refresh picks it up).

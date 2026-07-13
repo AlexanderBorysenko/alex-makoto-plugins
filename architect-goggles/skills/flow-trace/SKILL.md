@@ -29,7 +29,7 @@ Stack balance applies to the projection too.
      human's session language (contract §10); keep `arrow.type`, `edge` ids and code symbols canonical.
 4. Map each arrow to its structural `edge` id — this is what synchronizes MAP and SEQUENCE.
 5. Update `nodes[].metrics.flows_count`.
-6. Re-register the map (`node viewer/register-map.mjs`) so the viewer picks up the new version.
+6. Save the map file in place; the viewer reads it live, so a browser refresh picks up the new version.
 
 ## Sanity checks before finishing
 - Stack simulation over each flow balances (unbalanced = you didn't actually trace it).

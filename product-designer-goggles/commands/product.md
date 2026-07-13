@@ -13,5 +13,5 @@ Input: the task (bug, feature, "explain this area"). Contract:
    relevant to the task (happy path + the variant where the bug/change lives).
 3. If the task proposes a change: invoke `product-impact`.
 4. If frontend work and the human wants visuals: invoke `present`.
-5. Register the map with the viewer (`node viewer/register-map.mjs <map>`) and
-   give the human the viewer URL + (if exported) the deck path.
+5. Save the canonical map file, start `viewer/serve.mjs` (its own port per goggle) and
+   give the human the `?path=<url-encoded absolute path>` viewer URL + (if exported) the deck path.

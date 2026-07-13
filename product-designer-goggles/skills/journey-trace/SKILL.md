@@ -28,7 +28,7 @@ Extends an existing PJM map's `flows[]`. Obey `spec/agent-contract.md`
    present skill after real captures.
 6. Screenshots: leave unset, or `pending` for steps the present skill should
    capture (frontend steps worth showing).
-7. Lint, fix, re-register the map.
+7. Lint, fix, save the map file in place (the viewer reads it live — refresh picks it up).
 
 ## Rules
 - Every step's screen must be a screen node (lint enforces).

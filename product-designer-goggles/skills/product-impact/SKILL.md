@@ -22,7 +22,7 @@ Extends the task's PJM map with `diffs[]` and `flow_diffs[]`. Obey
 4. **Journey regressions** (`flow_diffs[]`): for each journey touching a
    changed node: `removed_step_seqs` + `added_steps` describing the new user
    experience; `note` for behavior-identical-but-riskier cases.
-5. Lint; register; the human reviews the diff in the viewer BEFORE any code
+5. Lint; save the map file; the human reviews the diff in the viewer BEFORE any code
    is written. Present the affected-journeys list in chat too (one line each).
 
 ## Rules

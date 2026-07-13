@@ -35,7 +35,8 @@ Produces `.claude-memory/product/maps/<task-slug>.json` conforming to
    until clean.
 7. **STOP at the perimeter gate**: present the map summary + black-box list
    with evidence; the human routes each. Agentic fallback: contract §5.
-8. After routing, update resolutions/evidence, re-lint, register with viewer.
+8. After routing, update resolutions/evidence, re-lint, save the map file (the viewer reads it
+   live by `?path=` — refresh picks it up).
 
 ## Rules
 - No node without resolution; no suspected/dismissed without evidence.

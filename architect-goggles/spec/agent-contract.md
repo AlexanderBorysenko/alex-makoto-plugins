@@ -100,8 +100,7 @@ When the human confirms a fact from experience, OFFER to append it to the enviro
 - **One canonical file per task**: `<repo>/.claude-memory/maps/<task-slug>.json`, updated
   in place across iterations of the same task/session. The file path is the map's identity —
   agents continuing the task (or other agents) load and mutate THIS file, never a copy.
-  The viewer reads it live via `/?path=<url-encoded abs path>`. Content-hash registration
-  (`register-map.mjs`, `?map=<hash>`) is only for immutable share-snapshots.
+  The viewer reads it live via `/?path=<url-encoded abs path>` — no copy, no registry.
 - **Always set `meta.source_root`** — absolute path to the analyzed repo on the viewer's
   machine. Without it the viewer cannot resolve `source_refs` to live code (inspector
   preview + "Open in IDE" go dead) and falls back to embedded `code_snippets` only.

@@ -242,7 +242,7 @@
 <script src="vendor/dagre.min.js"></script>
 <script src="vendor/highlight.min.js"></script>
 <script>
-/* ============ load map by ?map=<hash> ============ */
+/* ============ load map by ?path=<abs path to map.json> ============ */
 let DOC=null;
 const KIND_COLOR=k=>({controller:"var(--k-controller)",service:"var(--k-service)",gateway:"var(--k-gateway)",repo:"var(--k-repo)",queue:"var(--k-queue)",consumer:"var(--k-consumer)",internal:"var(--k-internal)",db_trigger:"var(--k-db_trigger)",scheduled_job:"var(--k-scheduled_job)",external_system:"var(--k-external_system)"}[k]||"var(--faint)");
 const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null};
@@ -252,11 +252,10 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 
 async function boot(){
   const params=new URLSearchParams(location.search);
-  // Primary mode: ?path=<abs path to map.json> — one canonical file per task,
-  // read live from disk (edit file → refresh). ?map=<hash> kept for registry back-compat.
+  // ?path=<abs path to map.json> — one canonical file per task, read live from
+  // disk (edit file → refresh). No param → the bundled example map.
   const mapPath=params.get("path");
-  const hash=params.get("map")||"example";
-  const src=mapPath?`/mapfile?path=${encodeURIComponent(mapPath)}`:`maps/${hash}.json`;
+  const src=mapPath?`/mapfile?path=${encodeURIComponent(mapPath)}`:`maps/example.json`;
   const pathInput=document.getElementById("mapPath");
   if(mapPath)pathInput.value=mapPath;
   pathInput.addEventListener("keydown",e=>{
@@ -270,9 +269,8 @@ async function boot(){
     if(DOC.error) throw new Error(DOC.error);
   }catch(e){
     document.getElementById("paneMap").innerHTML=
-      `<div class="loaderr">Failed to load ${esc(mapPath||`maps/${hash}.json`)} (${esc(e.message)}).<br>
-       Enter the path to map.json in the field above, or open /?path=&lt;absolute path&gt;<br>
-       Or try the example: <a href="?map=example" style="color:var(--accent)">/?map=example</a></div>`;
+      `<div class="loaderr">Failed to load ${esc(mapPath||"maps/example.json")} (${esc(e.message)}).<br>
+       Enter the path to map.json in the field above, or open /?path=&lt;absolute path&gt;</div>`;
     return;
   }
   ensureLayout();

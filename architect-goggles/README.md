@@ -26,7 +26,7 @@ spec/schema.v0.4.json        JSON Schema for map documents
 spec/agent-contract.md       generation rules & well-formedness (the "law" for agents)
 skills/                      arch-map, flow-trace, impact-diff, perimeter-scan
 commands/explain.md          /explain orchestration command
-viewer/                      local viewer app + map registry
+viewer/                      local viewer app (reads map files live by path)
 manifest/ENVIRONMENT.md      environment manifest template
 ```
 
@@ -35,8 +35,11 @@ manifest/ENVIRONMENT.md      environment manifest template
 cd viewer
 node serve.mjs        # http://localhost:4173
 ```
-Agent workflow: write map JSON → `node register-map.mjs <file>` → returns hash → open
-`http://localhost:4173/?map=<hash>`. An example map ships as `maps/example.json` (open `/?map=example`).
+Agent workflow: write the canonical map JSON to `<repo>/.claude-memory/maps/<task-slug>.json` →
+`node spec/lint.mjs <file>` → open `http://localhost:4173/?path=<url-encoded absolute path>`.
+The viewer reads the file live from disk (edit + refresh = the whole update loop). An example map
+ships as `maps/example.json` (open `/`). Run each goggle's viewer on its own port
+(`node serve.mjs 4173`, `node serve.mjs 4174`) when showing more than one.
 
 ## Status
 v0.5 scaffold (renamed from `codebase-explainer`; map format still **PCE v0.4**).

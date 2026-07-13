@@ -10,7 +10,7 @@ first: `git init && git add -A && git commit -m x` — maps need commit_hash).
    before journeys)
 2. Journey trace: continue after routing
    (journey with actor lane, 3+ steps, business_why on each, screenshots
-   pending on UI steps; lint clean; map registered; viewer URL printed)
+   pending on UI steps; lint clean; map saved; `?path=` viewer URL printed)
 3. Viewer: open the URL
    (CAPABILITY renders kinds with distinct shapes; JOURNEY playback works;
    screenshot panel shows placeholders)

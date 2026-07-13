@@ -46,13 +46,13 @@ map from it (`<task-slug>.overview.json`). The overview is never built from code
    revision; the file path is the map's identity that other agents and later sessions
    reference). Run `node spec/lint.mjs <file>` — it must pass before handing the link over.
    Give the user `http://localhost:4173/?path=<url-encoded absolute path>` (start
-   `viewer/serve.mjs` if not running). The viewer reads the file live from disk:
-   edit + refresh is the whole update loop. No registry involved; `register-map.mjs`
-   (`?map=<hash>`) remains only for sharing immutable snapshots.
+   `viewer/serve.mjs` if not running; use a distinct port per goggle — e.g.
+   `node serve.mjs 4174` — when showing more than one). The viewer reads the file
+   live from disk: edit + refresh is the whole update loop.
 
 ## Output requirements
 - Valid against schema v0.4 (run a JSON Schema validation if ajv is available).
-- `node spec/lint.mjs <map.json>` passes — register-map.mjs runs the same lint and hard-rejects on errors.
+- `node spec/lint.mjs <map.json>` passes with no errors before you hand over the link.
 - `meta.source_root` set (live code preview depends on it).
 - Perimeter closure: nothing in scope without a resolution.
 - `scan_coverage` filled honestly (carried from researcher's finding — architect does not scan).

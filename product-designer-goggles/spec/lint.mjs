@@ -1,6 +1,6 @@
 // PJM map lint — deterministic metric recompute + structural/journey integrity.
 // Usage: node lint.mjs <map.json>            (CLI)
-//        import { lintMap } from "./lint.mjs" (register-map.mjs)
+//        import { lintMap } from "./lint.mjs" (programmatic)
 //
 // Design: the LLM never writes metric numbers. They are recomputed here from
 // the map itself; mismatches are hard errors.
