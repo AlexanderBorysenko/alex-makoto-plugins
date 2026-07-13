@@ -18,7 +18,18 @@ that does not exist. Flow: **triage → route → execute → ground → (persis
 5. Separate READ (I saw this code) from ASSUMED (I expect this based on pattern) — explicitly.
 6. If memory/graph contradicts current code, current code wins; mark the finding STALE?.
 
-## Step 0 — load state
+## Step 0 — load state + freshness auto-fix
+
+**Freshness (free ops run automatically, no approval; paid ops always ask):**
+
+Run `node ${CLAUDE_PLUGIN_ROOT}/bin/freshness.js` (or reuse the SessionStart status block if this session already printed one) and act on each status:
+
+- `graphify: stale` or `graphify: unbaselined` → run `graphify update .` (AST-only, no LLM, free), then baseline: `git rev-parse HEAD > graphify-out/.researcher-head`.
+- `graphify: missing — copyable from <main root>` (git worktree) → copy the `graphify-out/` directory from the main repo root into this worktree, run `graphify update .`, write the baseline marker. Never point queries at the main root's graph directly — it reflects another branch.
+- `serena: not onboarded` → activate the project (`mcp__plugin_serena_serena__activate_project`) and run onboarding (free).
+- `graphify: missing` (no copy source) → do NOT index silently; note it, continue with the other tools, offer `/research-setup` once at the end of the answer.
+
+**Memory:**
 
 - If `.claude-research/` exists: read `.claude-research/config.md` (tool availability + domain notes), then run
   `node ${CLAUDE_PLUGIN_ROOT}/bin/research-index.js list` and scan for findings relevant to the question.
@@ -85,6 +96,9 @@ Boundary: never write into `.claude-memory/` — that store belongs to the memor
 2. Ask whether `.claude-research/` should be committed or gitignored; record the choice in config.md
    and add a `.gitignore` entry if gitignored.
 3. `graphify-out/graph.json` missing and graphify wanted: state that `graphify index .` costs API tokens
-   and can take a while; run it ONLY after explicit approval.
+   and can take a while; run it ONLY after explicit approval. **Model pinning for indexing:** dispatch any
+   indexing/extraction subagents on **haiku** by default (sonnet only if the user explicitly asks for higher
+   extraction quality). Never run indexing on the session model. After indexing completes, baseline:
+   `git rev-parse HEAD > graphify-out/.researcher-head`.
 4. Serena not activated and wanted: offer `mcp__plugin_serena_serena__activate_project` / onboarding.
 5. Finish with the same status block format the SessionStart hook prints.

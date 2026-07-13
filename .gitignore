@@ -8,4 +8,4 @@ Thumbs.db
 # Node (future-proofing; no deps committed today)
 node_modules/
 npm-debug.log*
-graphify-out
+graphify-out.worktrees/

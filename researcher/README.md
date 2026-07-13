@@ -1,6 +1,6 @@
 # researcher
 
-Claude Code plugin: deterministic research orchestration. v0.1.0.
+Claude Code plugin: deterministic research orchestration. v0.2.0.
 
 **Problem:** ad-hoc investigation — wrong tool per question, context sprawl, and the classic LLM failure of imagining logic that does not exist.
 
@@ -10,10 +10,12 @@ Claude Code plugin: deterministic research orchestration. v0.1.0.
 - **Route** by table: Serena for symbols, graphify for structure, context-mode for big outputs, context7/firecrawl/WebSearch for external — respecting per-project availability in `.claude-research/config.md`.
 - **Ground**: every claim cites `file:line` / tool output / finding; "not found" is a valid answer; READ vs ASSUMED separated; verify-gate checklist before answering.
 - **Persist**: findings docs in `.claude-research/findings/` with git-HEAD staleness marking (`bin/research-index.js list`), consumable by architect/product-designer goggles via the "For goggles" section.
+- **Freshness** (v0.2): index freshness validated at session start and /research step 0. Free fixes run automatically — `graphify update .` (AST-only) when stale/unbaselined, graphify-out copy from the main repo root in git worktrees, serena onboarding. Paid fixes (fresh `graphify index .`) always ask and pin indexing subagents to haiku (sonnet on explicit quality request). Baseline marker: `graphify-out/.researcher-head`.
 
 ## Layout
 
-- `hooks/session-start.js` — deterministic detection (graphify-out, .serena, .claude-research), ≤10-line status block, one-time /research-setup offer.
+- `hooks/session-start.js` — deterministic status block (≤10 lines): freshness per tool, auto-fix note, one-time /research-setup offer.
+- `bin/freshness.js` — freshness assessment module + CLI (graphify staleness vs `.researcher-head` marker, worktree copy detection, serena onboarding state, store status).
 - `skills/researcher/SKILL.md` — the workflow.
 - `commands/research.md`, `commands/research-setup.md` — slash commands.
 - `bin/research-index.js` — findings index + staleness CLI.
@@ -30,6 +32,7 @@ Claude Code plugin: deterministic research orchestration. v0.1.0.
 ```
 node researcher/tests/session-start.test.js
 node researcher/tests/research-index.test.js
+node researcher/tests/freshness.test.js
 ```
 
 ## Acceptance checklist (manual, per spec)
@@ -40,3 +43,6 @@ node researcher/tests/research-index.test.js
 - [ ] Question about non-existent function → answer is "not found", not invented behavior.
 - [ ] Session start in empty project → ≤10 lines, single /research-setup offer.
 - [ ] Evidence file changed after finding written → `research-index.js list` shows `STALE?`.
+- [ ] Commit after baseline marker → hook shows `graphify: stale (N files changed)` + auto-fix line; /research runs `graphify update .` without asking.
+- [ ] Git worktree without graphify-out but main root has one → hook shows copyable; /research copies + updates instead of reindexing.
+- [ ] Fresh `graphify index .` → approval asked, indexing subagents pinned to haiku.
