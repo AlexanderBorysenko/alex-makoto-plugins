@@ -1,8 +1,12 @@
 {
   "name": "researcher",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory.",
   "author": {
     "name": "alex.borysenko"
-  }
+  },
+  "dependencies": [
+    { "name": "serena", "marketplace": "claude-plugins-official" },
+    { "name": "context-mode", "marketplace": "context-mode" }
+  ]
 }
