@@ -1,6 +1,6 @@
 {
   "name": "worktrees",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Law-governed git worktree protocol for agents: standardized lifecycle (create/announce/isolate/sync/deliver/cleanup), non-negotiable laws (one worktree = one branch = one task, announce before create, no cross-worktree writes, one memory hub at repo root), a per-project registry, and /wt-* commands.",
   "author": {
     "name": "alex.borysenko"

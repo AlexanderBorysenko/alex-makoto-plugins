@@ -48,7 +48,13 @@ function assessGraphify(root) {
 }
 
 function assessSerena(root) {
-  if (!fs.existsSync(path.join(root, '.serena', 'project.yml'))) return { status: 'missing' };
+  if (!fs.existsSync(path.join(root, '.serena', 'project.yml'))) {
+    const mainRoot = mainRootIfWorktree(root);
+    if (mainRoot && fs.existsSync(path.join(mainRoot, '.serena', 'project.yml'))) {
+      return { status: 'main-root', mainRoot };
+    }
+    return { status: 'missing' };
+  }
   const memories = path.join(root, '.serena', 'memories');
   const onboarded =
     fs.existsSync(memories) && fs.readdirSync(memories).some((f) => !f.startsWith('.'));
@@ -117,7 +123,9 @@ function formatLines({ graphify, serena, store }) {
       ? 'serena: ready'
       : serena.status === 'not-onboarded'
         ? 'serena: not onboarded'
-        : 'serena: missing'
+        : serena.status === 'main-root'
+          ? `serena: index at main repo ${serena.mainRoot} — activate_project there; NEVER onboard from scratch inside a worktree`
+          : 'serena: missing'
   );
   lines.push(
     store.status === 'ready'

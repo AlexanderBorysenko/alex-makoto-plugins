@@ -52,6 +52,10 @@ default. A worktree is the sanctioned exception ONLY when a gate above passes.
   `graphify update .` (copy first so the incremental extractor has cached AST to
   diff against; the update re-extracts only files that differ on the branch).
 - If the parent has no `graphify-out/` → skip and note it in the registry row.
+- Serena is different: its project index belongs to the MAIN repo and is NOT
+  copied. If serena is needed inside the worktree, `activate_project` on the
+  parent repo root — NEVER run serena onboarding from scratch in a worktree
+  (that builds a duplicate throwaway index).
 
 ### W2. ANNOUNCE + REGISTER
 - Add a row to the registry `.claude-memory/worktrees.md` (format below);

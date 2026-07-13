@@ -16,6 +16,9 @@ if (result.graphify.status === 'missing-copyable') {
 if (result.serena.status === 'not-onboarded') {
   autofix.push('serena onboarding');
 }
+if (result.serena.status === 'main-root') {
+  autofix.push(`serena activate_project ${result.serena.mainRoot} (reuse main-repo index — do NOT onboard here)`);
+}
 
 const missing = [];
 if (result.graphify.status === 'missing') missing.push('graphify index');

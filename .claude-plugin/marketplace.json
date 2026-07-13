@@ -9,7 +9,7 @@
     {
       "name": "orchestrator",
       "source": "./orchestrator",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told."
     },
     {
@@ -33,13 +33,13 @@
     {
       "name": "researcher",
       "source": "./researcher",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory."
     },
     {
       "name": "worktrees",
       "source": "./worktrees",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "description": "Law-governed git worktree protocol for agents: standardized lifecycle (create/announce/isolate/sync/deliver/cleanup), non-negotiable laws (one worktree = one branch = one task, announce before create, no cross-worktree writes), a per-project registry, and /wt-* commands."
     },
     {
