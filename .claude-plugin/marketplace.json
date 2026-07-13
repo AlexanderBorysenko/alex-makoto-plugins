@@ -6,6 +6,12 @@
   "description": "Alex's Claude Code plugins.",
   "plugins": [
     {
+      "name": "orchestrator",
+      "source": "./orchestrator",
+      "version": "0.1.0",
+      "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told."
+    },
+    {
       "name": "tasks-manager",
       "source": "./tasks-manager",
       "version": "0.4.0",
