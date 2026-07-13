@@ -32,8 +32,10 @@ Run `node ${CLAUDE_PLUGIN_ROOT}/bin/freshness.js` (or reuse the SessionStart sta
 **Memory:**
 
 - If `.claude-research/` exists: read `.claude-research/config.md` (tool availability + domain notes), then run
-  `node ${CLAUDE_PLUGIN_ROOT}/bin/research-index.js list` and scan for findings relevant to the question.
-  A relevant non-STALE finding may be cited as evidence; a `STALE?` finding must be re-verified before citing.
+  `node ${CLAUDE_PLUGIN_ROOT}/bin/research-index.js list` and scan for findings and wiki topic pages relevant to the question.
+  Enter through the wiki page when one covers the topic (compiled current truth), then follow its links down to findings.
+  **Wiki pages are navigation, not evidence** — cite the underlying finding, never the page.
+  A relevant non-STALE finding may be cited as evidence; a `STALE?` finding or wiki page must be re-verified before use.
 - If `.claude-research/` does not exist: proceed without memory; offer `/research-setup` once at the end of the answer.
 
 ## Step 1 — triage
@@ -87,6 +89,15 @@ Walk the draft answer claim by claim:
 2. Save as `.claude-research/findings/<kebab-slug>.md`.
 3. Append to `.claude-research/INDEX.md`: `- [Title](findings/slug.md) — <level> — <YYYY-MM-DD>`.
 4. Fill the **For goggles** section (nodes/edges/black-box suspects) whenever the finding touched structure — architect-goggles and product-designer-goggles consume it as pre-verified evidence. This link is one-way: never read goggles maps as research evidence.
+5. **Distill (Karpathy LLM-wiki layer):** findings are the immutable raw layer; `wiki/<topic>.md` is the compiled
+   current truth on top. After saving a finding, check whether **3+ findings now share its topic** or a wiki page
+   for the topic already exists. If so, create/update `wiki/<kebab-topic>.md` from
+   `${CLAUDE_PLUGIN_ROOT}/templates/wiki-topic.md`:
+   - fold the new claim into **Current claims** (replace superseded claims in place — never keep contradicting
+     claims side by side; log the change in **Superseded**);
+   - list every supporting finding in the `findings:` frontmatter (the index CLI propagates staleness from them);
+   - bump `updated:`.
+   Never edit a finding retroactively — supersede via a new finding, then update the wiki page.
 
 Boundary: never write into `.claude-memory/` — that store belongs to the memory-system plugin.
 

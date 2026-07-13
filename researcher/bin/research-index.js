@@ -3,6 +3,9 @@
 // Usage: node research-index.js list [projectRoot]
 // Prints one INDEX-style line per findings/*.md, prefixed with "STALE? "
 // when any evidence file changed between the finding's recorded head and HEAD.
+// Then lists compiled wiki topic pages (wiki/*.md); a page is STALE? when any
+// supporting finding is stale or missing — findings are the raw evidence
+// layer, wiki pages are compiled navigation on top (Karpathy LLM-wiki pattern).
 
 const fs = require('fs');
 const path = require('path');
@@ -17,20 +20,26 @@ function parseFrontmatter(text) {
     const mm = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
     return mm ? mm[1].trim() : '';
   };
-  const files = [];
-  const filesBlock = fm.match(/^files:\n((?:\s+-\s+.+\n?)+)/m);
-  if (filesBlock) {
-    for (const line of filesBlock[1].split('\n')) {
-      const fm2 = line.match(/^\s+-\s+(.+)$/);
-      if (fm2) files.push(fm2[1].trim());
+  const listOf = (key) => {
+    const items = [];
+    const block = fm.match(new RegExp(`^${key}:\\n((?:\\s+-\\s+.+\\n?)+)`, 'm'));
+    if (block) {
+      for (const line of block[1].split('\n')) {
+        const mm = line.match(/^\s+-\s+(.+)$/);
+        if (mm) items.push(mm[1].trim());
+      }
     }
-  }
+    return items;
+  };
   return {
     title: get('title'),
     date: get('date'),
     level: get('level'),
     head: get('head'),
-    files,
+    topic: get('topic'),
+    updated: get('updated'),
+    files: listOf('files'),
+    findings: listOf('findings'),
   };
 }
 
@@ -47,22 +56,30 @@ function changedFilesSince(head, cwd) {
   }
 }
 
+function mdFiles(dir) {
+  try {
+    return fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith('.md'))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
 function list(root) {
-  const findingsDir = path.join(root, '.claude-research', 'findings');
-  if (!fs.existsSync(findingsDir)) {
+  const store = path.join(root, '.claude-research');
+  const findingFiles = mdFiles(path.join(store, 'findings'));
+  const wikiFiles = mdFiles(path.join(store, 'wiki'));
+  if (findingFiles.length === 0 && wikiFiles.length === 0) {
     console.log('research store: no findings yet.');
     return;
   }
-  const entries = fs
-    .readdirSync(findingsDir)
-    .filter((f) => f.endsWith('.md'))
-    .sort();
-  if (entries.length === 0) {
-    console.log('research store: no findings yet.');
-    return;
-  }
-  for (const file of entries) {
-    const text = fs.readFileSync(path.join(findingsDir, file), 'utf8');
+
+  // stale state per finding, keyed by store-relative path ("findings/<file>")
+  const staleByPath = new Map();
+  for (const file of findingFiles) {
+    const text = fs.readFileSync(path.join(store, 'findings', file), 'utf8');
     const meta = parseFrontmatter(text);
     if (!meta || !meta.title) {
       console.log(`- [${file}](findings/${file}) — unparsed frontmatter`);
@@ -73,8 +90,27 @@ function list(root) {
       const changed = changedFilesSince(meta.head, root);
       if (changed) stale = meta.files.some((f) => changed.has(f.replace(/\\/g, '/')));
     }
+    staleByPath.set(`findings/${file}`, stale);
     const prefix = stale ? 'STALE? ' : '';
     console.log(`${prefix}- [${meta.title}](findings/${file}) — ${meta.level} — ${meta.date}`);
+  }
+
+  // compiled wiki pages: stale when any supporting finding is stale or missing
+  for (const file of wikiFiles) {
+    const text = fs.readFileSync(path.join(store, 'wiki', file), 'utf8');
+    const meta = parseFrontmatter(text);
+    if (!meta || !meta.topic) {
+      console.log(`- [${file}](wiki/${file}) — unparsed frontmatter`);
+      continue;
+    }
+    const stale = meta.findings.some((f) => {
+      const key = f.replace(/\\/g, '/');
+      return !staleByPath.has(key) || staleByPath.get(key) === true;
+    });
+    const prefix = stale ? 'STALE? ' : '';
+    console.log(
+      `${prefix}- [${meta.topic}](wiki/${file}) — updated ${meta.updated} — ${meta.findings.length} findings`
+    );
   }
 }
 

@@ -1,6 +1,6 @@
 # researcher
 
-Claude Code plugin: deterministic research orchestration. v0.2.0.
+Claude Code plugin: deterministic research orchestration. v0.3.0.
 
 **Problem:** ad-hoc investigation — wrong tool per question, context sprawl, and the classic LLM failure of imagining logic that does not exist.
 
@@ -10,6 +10,7 @@ Claude Code plugin: deterministic research orchestration. v0.2.0.
 - **Route** by table: Serena for symbols, graphify for structure, context-mode for big outputs, context7/firecrawl/WebSearch for external — respecting per-project availability in `.claude-research/config.md`.
 - **Ground**: every claim cites `file:line` / tool output / finding; "not found" is a valid answer; READ vs ASSUMED separated; verify-gate checklist before answering.
 - **Persist**: findings docs in `.claude-research/findings/` with git-HEAD staleness marking (`bin/research-index.js list`), consumable by architect/product-designer goggles via the "For goggles" section.
+- **Wiki layer** (v0.3, Karpathy LLM-wiki pattern): findings stay the immutable raw evidence layer; `.claude-research/wiki/<topic>.md` pages compile the current truth per topic once 3+ findings share it. Pages link down to findings; **wiki = navigation, findings = evidence**. The index CLI lists both and propagates staleness from findings to pages.
 - **Freshness** (v0.2): index freshness validated at session start and /research step 0. Free fixes run automatically — `graphify update .` (AST-only) when stale/unbaselined, graphify-out copy from the main repo root in git worktrees, serena onboarding. Paid fixes (fresh `graphify index .`) always ask and pin indexing subagents to haiku (sonnet on explicit quality request). Baseline marker: `graphify-out/.researcher-head`.
 
 ## Layout
@@ -18,8 +19,8 @@ Claude Code plugin: deterministic research orchestration. v0.2.0.
 - `bin/freshness.js` — freshness assessment module + CLI (graphify staleness vs `.researcher-head` marker, worktree copy detection, serena onboarding state, store status).
 - `skills/researcher/SKILL.md` — the workflow.
 - `commands/research.md`, `commands/research-setup.md` — slash commands.
-- `bin/research-index.js` — findings index + staleness CLI.
-- `templates/` — config.md, research-index.md, finding.md.
+- `bin/research-index.js` — findings + wiki index with staleness propagation.
+- `templates/` — config.md, research-index.md, finding.md, wiki-topic.md.
 
 ## Boundaries
 
@@ -46,3 +47,5 @@ node researcher/tests/freshness.test.js
 - [ ] Commit after baseline marker → hook shows `graphify: stale (N files changed)` + auto-fix line; /research runs `graphify update .` without asking.
 - [ ] Git worktree without graphify-out but main root has one → hook shows copyable; /research copies + updates instead of reindexing.
 - [ ] Fresh `graphify index .` → approval asked, indexing subagents pinned to haiku.
+- [ ] Third finding on one topic → wiki page created/updated; claims cite findings, not the page.
+- [ ] Supporting finding goes stale → `research-index.js list` marks the wiki page `STALE?` too.
