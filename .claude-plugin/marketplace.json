@@ -28,6 +28,12 @@
       "source": "./product-designer-goggles",
       "version": "0.1.0",
       "description": "Product maps (PJM): capability view + journey playback with screenshots, product impact diffs, HTML deck export."
+    },
+    {
+      "name": "researcher",
+      "source": "./researcher",
+      "version": "0.1.0",
+      "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory."
     }
   ]
 }

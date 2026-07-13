@@ -9,6 +9,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 function parseFrontmatter(text) {
+  text = text.replace(/\r\n/g, '\n');
   const m = text.match(/^---\n([\s\S]*?)\n---/);
   if (!m) return null;
   const fm = m[1];
@@ -70,7 +71,7 @@ function list(root) {
     let stale = false;
     if (meta.head && meta.files.length > 0) {
       const changed = changedFilesSince(meta.head, root);
-      if (changed) stale = meta.files.some((f) => changed.has(f));
+      if (changed) stale = meta.files.some((f) => changed.has(f.replace(/\\/g, '/')));
     }
     const prefix = stale ? 'STALE? ' : '';
     console.log(`${prefix}- [${meta.title}](findings/${file}) — ${meta.level} — ${meta.date}`);

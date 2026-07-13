@@ -1,4 +1,4 @@
 # Research index
 
-One line per finding: `- [Title](findings/slug.md) — hook — YYYY-MM-DD`.
-Regenerate staleness view with: `node ${CLAUDE_PLUGIN_ROOT}/bin/research-index.js list`
+One line per finding: `- [Title](findings/slug.md) — <level> — <YYYY-MM-DD>`.
+Regenerate staleness view with the researcher plugin's index CLI: `node <plugin root>/bin/research-index.js list`

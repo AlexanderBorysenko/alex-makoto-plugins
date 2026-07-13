@@ -100,4 +100,38 @@ function writeFinding(dir, slug, fm) {
   assert.ok(!out.includes('STALE?'), `stale without git: ${out}`);
 }
 
+// Case 6: CRLF finding — entire file uses \r\n line endings, valid frontmatter
+{
+  const dir = makeRepo();
+  fs.writeFileSync(path.join(dir, 'auth.js'), 'x');
+  sh('git', ['add', '.'], dir);
+  sh('git', ['commit', '-qm', 'c1'], dir);
+  const head = sh('git', ['rev-parse', 'HEAD'], dir).trim();
+  const crlf = `---\r\ntitle: Auth flow\r\ndate: 2026-07-12\r\nlevel: L2\r\nhead: ${head}\r\nfiles:\r\n  - auth.js\r\n---\r\n\r\nBody.\r\n`;
+  writeFinding(dir, 'auth-flow', crlf);
+  const out = sh('node', [script, 'list', dir], dir);
+  assert.ok(out.includes('- [Auth flow](findings/auth-flow.md) — L2 — 2026-07-12'), `line: ${out}`);
+  assert.ok(!out.includes('unparsed frontmatter'), `unexpected unparsed: ${out}`);
+}
+
+// Case 7: backslash path in files: — matched against forward-slash git diff output → STALE?
+{
+  const dir = makeRepo();
+  fs.mkdirSync(path.join(dir, 'sub'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'sub', 'auth.js'), 'x');
+  sh('git', ['add', '.'], dir);
+  sh('git', ['commit', '-qm', 'c1'], dir);
+  const head = sh('git', ['rev-parse', 'HEAD'], dir).trim();
+  writeFinding(
+    dir,
+    'auth-flow',
+    `---\ntitle: Auth flow\ndate: 2026-07-12\nlevel: L2\nhead: ${head}\nfiles:\n  - sub\\auth.js\n---\n\nBody.\n`
+  );
+  fs.writeFileSync(path.join(dir, 'sub', 'auth.js'), 'changed');
+  sh('git', ['add', '.'], dir);
+  sh('git', ['commit', '-qm', 'c2'], dir);
+  const out = sh('node', [script, 'list', dir], dir);
+  assert.ok(out.includes('STALE? - [Auth flow](findings/auth-flow.md)'), `stale expected: ${out}`);
+}
+
 console.log('research-index.test.js: all assertions passed');

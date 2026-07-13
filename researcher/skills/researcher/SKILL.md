@@ -72,7 +72,7 @@ Walk the draft answer claim by claim:
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/finding.md` structure; fill every frontmatter field:
    `head:` = current `git rev-parse HEAD`; `files:` = the evidence files cited.
 2. Save as `.claude-research/findings/<kebab-slug>.md`.
-3. Append to `.claude-research/INDEX.md`: `- [Title](findings/<slug>.md) — <hook> — <date>`.
+3. Append to `.claude-research/INDEX.md`: `- [Title](findings/slug.md) — <level> — <YYYY-MM-DD>`.
 4. Fill the **For goggles** section (nodes/edges/black-box suspects) whenever the finding touched structure — architect-goggles and product-designer-goggles consume it as pre-verified evidence. This link is one-way: never read goggles maps as research evidence.
 
 Boundary: never write into `.claude-memory/` — that store belongs to the memory-system plugin.
