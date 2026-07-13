@@ -27,7 +27,7 @@
     {
       "name": "product-designer-goggles",
       "source": "./product-designer-goggles",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Product maps (PJM): capability view + journey playback with screenshots, product impact diffs, HTML deck export."
     },
     {

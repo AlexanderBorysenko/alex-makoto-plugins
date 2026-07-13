@@ -57,6 +57,25 @@ http.createServer(async (req, res) => {
       }
     }
 
+    // static asset relative to a map's directory: /asset?mapPath=<abs.json>&rel=<rel>
+    // Resolves <rel> against dirname(mapPath); refuses to escape. Backs contract §7
+    // ("step.screenshot = path relative to the MAP FILE") so screenshots load in the
+    // browser even though location.href is /mapfile, not the map's directory.
+    if (url.pathname === "/asset") {
+      const mapPath = url.searchParams.get("mapPath") || "";
+      const rel = url.searchParams.get("rel") || "";
+      if (!mapPath || !rel) { res.writeHead(400, jsonHead); return res.end('{"error":"mapPath and rel required"}'); }
+      const mapAbs = resolve(mapPath);
+      const mapDir = mapAbs.substring(0, mapAbs.lastIndexOf(sep));
+      const abs = within(mapDir, rel);
+      if (!abs) { res.writeHead(403, jsonHead); return res.end('{"error":"outside map dir"}'); }
+      try {
+        const body = await readFile(abs);
+        res.writeHead(200, { "content-type": MIME[extname(abs)] || "application/octet-stream", "cache-control": "no-store" });
+        return res.end(body);
+      } catch { res.writeHead(404, jsonHead); return res.end('{"error":"read failed"}'); }
+    }
+
     // launch editor at file:line: /open?root=<abs>&file=<rel>&line=<n>
     if (url.pathname === "/open") {
       const abs = within(url.searchParams.get("root") || "", url.searchParams.get("file") || "");

@@ -875,7 +875,17 @@ function updateShotPanel(step, mapBaseUrl){
   why.textContent=(step&&step.business_why)||"";
   if(step&&step.screenshot&&step.screenshot!=="pending"){
     let href=null;
-    try{href=new URL(step.screenshot,mapBaseUrl).href;}catch(e){href=null;}
+    const s=step.screenshot;
+    if(/^(https?:|data:)/i.test(s)){
+      href=s;                                    // absolute URL or data URI: use as-is
+    }else{
+      // Contract §7: path is relative to the map FILE. Route through /asset
+      // (server resolves against dirname(mapPath), guarded). Fallback to old
+      // base-URL resolution for the bundled example (no ?path query).
+      const mp=new URL(location.href).searchParams.get("path");
+      if(mp) href=`/asset?mapPath=${encodeURIComponent(mp)}&rel=${encodeURIComponent(s)}`;
+      else{ try{href=new URL(s,mapBaseUrl).href;}catch(e){href=null;} }
+    }
     if(!href){showEmpty();return;}
     img.onerror=()=>showEmpty();               // item 8: failed load → placeholder, not a crash
     img.src=href;img.style.display="block";empty.style.display="none";

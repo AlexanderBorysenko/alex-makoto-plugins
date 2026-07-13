@@ -48,9 +48,12 @@ journeys that got real screenshots via project-executor are `local_run` or
 `static_and_run`.
 
 ## §7 Screenshots
-`step.screenshot` = path relative to the map file, or literal `pending`.
-Capture is delegated to project-executor (see present skill). Never fake a
-screenshot; never block map generation on capture.
+`step.screenshot` = filesystem path relative to the MAP FILE, `pending`, or an
+absolute `data:` / `http(s):` URL. The viewer serves relative paths through
+`/asset?mapPath=<abs>&rel=<rel>` (guarded to the map's directory); lint enforces
+on-disk existence for non-pending, non-URL values. Capture is delegated to
+project-executor (see present skill). Never fake a screenshot; never block map
+generation on capture.
 
 ## §8 Metrics & advisory
 `node.metrics` (fan_in/fan_out/flows_count) come from lint recomputation —
