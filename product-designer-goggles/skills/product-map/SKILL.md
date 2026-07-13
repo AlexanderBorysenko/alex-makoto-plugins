@@ -17,15 +17,18 @@ Produces `.claude-memory/product/maps/<task-slug>.json` conforming to
 2. **Read the PRODUCT manifest** if present (`.claude-memory/product/PRODUCT.md`
    or `manifest/PRODUCT.md` template location in the target repo — ask once
    if unsure). Manifest entries → nodes/claims with `manifest_ref`.
-3. **Derive structure from code, never from memory**: routes/pages → screen
-   nodes; feature modules/domain services → capabilities; permission/role
-   checks → roles; validation/pricing/authorization logic → rule nodes;
-   core persisted objects → entities. Every confirmed node: `source_refs`.
-4. **Product perimeter broad-scan** (always; grep-grade, no permission needed):
-   other screens using the in-scope capability; shared entities written
-   elsewhere; rules referenced by out-of-scope code; notification/email/
-   analytics side effects. Concrete hint → suspected node +
-   `suspected_influence` edge + evidence + relevance (§5).
+3. **Structure from researcher, never from memory or self-grep**: product-map does NOT grep or
+   trace code. Delegate discovery to the researcher plugin and consume its grounded finding, then
+   MAP the flat structural facts into PJM vocab: routes/pages → screen nodes; feature
+   modules/domain services → capabilities; permission/role checks → roles; validation/pricing/
+   authorization logic → rule nodes; core persisted objects → entities. Every confirmed node keeps
+   its `source_refs`. If researcher is unavailable, STOP and ask the human to enable it — no
+   ad-hoc grep fallback. Completeness is researcher's guarantee.
+4. **Formalize the finding's boundary-hints into the product perimeter** (no self-scan): the
+   grep-grade broad-scan (other screens using the in-scope capability, shared entities written
+   elsewhere, rules referenced by out-of-scope code, notification/email/analytics side effects)
+   runs inside researcher. Each flat boundary-hint (touchpoint + evidence + relevance) → suspected
+   node + `suspected_influence` edge carrying that evidence (§5). No hint → no box.
 5. **Assign display ids** (contract §4) and edges (`uses / affects /
    governed_by / navigates_to`).
 6. **Lint**: `node spec/lint.mjs <map>`; stamp recomputed metrics (§8). Fix

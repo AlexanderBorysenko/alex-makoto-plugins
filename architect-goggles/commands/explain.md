@@ -5,10 +5,10 @@ argument-hint: "<intent: explain|debug|extend> <task description>"
 
 Run the Architect Goggles workflow for: $ARGUMENTS
 
-1. Use the **arch-map** skill: frame intent/scope, read the environment manifest, build the
-   structural map from the code index, run the cheap perimeter broad-scan, assign display_ids,
-   register the map and give me the viewer link. STOP at the perimeter gate and present the
-   black-box list for my routing.
+1. Use the **arch-map** skill: frame intent/scope, read the environment manifest, delegate
+   discovery to the researcher plugin (structural facts + boundary-hints — architect does not
+   grep), formalize its finding into the PCE map, assign display_ids, register the map and give
+   me the viewer link. STOP at the perimeter gate and present the black-box list for my routing.
 2. After my routing: use **perimeter-scan** for boxes I marked to investigate.
 3. Use **flow-trace** to produce the flows relevant to the intent (happy path for explain;
    reproduction + contrast for debug; affected flows for extend).

@@ -63,6 +63,17 @@ an unavailable tool — say which tool was unavailable.
 | **L2** | `graphify query` + `graphify path`; Serena references/implementations for the code level | context-mode `ctx_batch_execute` when outputs are large | Inline answer; persist a finding if reusable across sessions. |
 | **L3** | `graphify explain` + `graphify-out/wiki/`; web research (context7 for libraries, firecrawl/WebSearch otherwise); parallel Explore subagents for wide sweeps | context-mode for processing; `.claude-memory/architecture_cache.md` as read-only context | Findings doc in `.claude-research/findings/` + INDEX.md line. |
 
+**Dynamic confirmation (independent module, routed-to not owned):** to confirm a runtime /
+async / broker / trigger-side-effect hypothesis that static reading cannot settle, route to the
+**project-executor** plugin — run the app and observe. It is a shared module (other agents call it
+for testing/developing too); researcher is one caller. Record the run as evidence with an honest
+`verified_by`. A confirmed run is enough to promote an architect-goggles black box (agent-contract §2).
+
+**Boundary broad-scan is researcher's job.** For any architecture/mapping/L2–L3 question, include a
+cheap grep-grade perimeter scan — migrations/triggers, cron/schedulers, broker bindings, framework
+listeners/AOP, shared tables touched by out-of-scope code — and record coverage honestly. The
+architecture consumer (architect-goggles) does NOT scan; it formalizes the hints researcher emits.
+
 Empty result handling: `graphify query` empty → say so, fall to Serena/grep.
 Serena empty → grep. Grep empty → the answer is "not found". Do not invent structure.
 
@@ -88,7 +99,11 @@ Walk the draft answer claim by claim:
    the tasks-manager hub links findings to task journals through it.
 2. Save as `.claude-research/findings/<kebab-slug>.md`.
 3. Append to `.claude-research/INDEX.md`: `- [Title](findings/slug.md) — <level> — <YYYY-MM-DD>`.
-4. Fill the **For goggles** section (nodes/edges/black-box suspects) whenever the finding touched structure — architect-goggles and product-designer-goggles consume it as pre-verified evidence. This link is one-way: never read goggles maps as research evidence.
+4. Fill the **For goggles** section whenever the finding touched structure — as FLAT facts only:
+   structural facts (with `source_ref`) + raw boundary-hints (touchpoint + `file:line` + relevance).
+   NO PCE shapes — no display_ids, resolution states, or suspected_influence edges; goggles does that
+   interpretation at its perimeter gate. architect-goggles and product-designer-goggles consume this
+   as pre-verified evidence. This link is one-way: never read goggles maps as research evidence.
 5. **Distill (Karpathy LLM-wiki layer):** findings are the immutable raw layer; `wiki/<topic>.md` is the compiled
    current truth on top. After saving a finding, check whether **3+ findings now share its topic** or a wiki page
    for the topic already exists. If so, create/update `wiki/<kebab-topic>.md` from

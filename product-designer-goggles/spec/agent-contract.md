@@ -12,7 +12,8 @@ Set `meta.source_root` (absolute path, forward slashes) so source_refs resolve.
 1. `manifest/PRODUCT.md` (or project-local equivalent) — tribal product truth.
    Entries used become nodes/claims with `manifest_ref`.
 2. Code-derived facts — routes, screens, UI copy, validation, permissions,
-   pricing logic. Always `resolution: confirmed` + `source_refs`.
+   pricing logic — obtained through the researcher plugin's grounded finding
+   (product-map does not grep). Always `resolution: confirmed` + `source_refs`.
 3. Inference from naming/README/docs — ALWAYS `resolution: suspected` + `evidence`.
 
 ## §3 The unsourced-why rule
@@ -28,12 +29,14 @@ PE# edges, J# journeys (steps J#.s#). Black box = `resolution: suspected`,
 never a kind.
 
 ## §5 Perimeter gate
-Broad-scan the product perimeter of the task scope: shared entities, other
-screens using the same capability, rules referenced elsewhere, notification /
-email side effects. Each concrete hint → suspected node + `suspected_influence`
-edge + evidence + relevance. Then STOP: present map + black-box list, human
-routes each (investigate / dismiss / confirm-from-experience). In agentic
-contexts with no human: leave suspected, list in `advisory.open_questions`.
+The product-perimeter broad-scan (shared entities, other screens using the same
+capability, rules referenced elsewhere, notification / email side effects) runs
+inside researcher, not here. Formalize each flat boundary-hint from its finding →
+suspected node + `suspected_influence` edge + evidence + relevance. Then STOP:
+present map + black-box list, human routes each (investigate / dismiss /
+confirm-from-experience). A routed runtime/side-effect box may be confirmed by a
+grounded run through the shared project-executor module (`verified_by` honest).
+In agentic contexts with no human: leave suspected, list in `advisory.open_questions`.
 
 ## §6 Journeys
 A journey = flow with `actor` (role node id), `goal`, optional `variant`.

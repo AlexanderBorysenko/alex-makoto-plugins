@@ -20,14 +20,16 @@ map from it (`<task-slug>.overview.json`). The overview is never built from code
    `source_refs` to live code and "Open in IDE" goes dead; contract §8).
 2. **Read the environment manifest** if present (`manifest/ENVIRONMENT.md` in the plugin, or a
    project-local equivalent — ask once if unsure). Relevant entries → confirmed nodes with `manifest_ref`.
-3. **Structure from the index, never from memory**: use available code-graph tooling
-   (or ripgrep + import/call tracing) to identify components in scope and their real edges.
-   Every confirmed node gets `source_refs`.
-4. **Cheap perimeter broad-scan** (always; no permission needed — it's grep-grade):
-   migrations (triggers/procedures), scheduling annotations/cron configs, message-broker
-   bindings, framework listeners/AOP, shared tables touched by out-of-scope code.
-   Each concrete hint → `resolution: suspected` node (+ `suspected_influence` edge) with `evidence`
-   and `relevance`. No hint → no box.
+3. **Structure from researcher, never from memory or self-grep**: architect does NOT grep or
+   trace code itself. Invoke the researcher plugin for the in-scope discovery and consume its
+   grounded finding. Every confirmed node comes from the finding's structural facts and keeps
+   their `source_refs`. If researcher is unavailable, STOP and ask the human to enable it — do
+   NOT fall back to ad-hoc grep. Completeness is researcher's guarantee; one code path only.
+4. **Interpret the finding's boundary-hints into the perimeter** (no self-scan): the grep-grade
+   perimeter broad-scan (migrations/triggers, cron/schedulers, broker bindings, framework
+   listeners/AOP, shared tables) now runs inside researcher. Architect only formalizes: each flat
+   boundary-hint from the finding (touchpoint + evidence + relevance) → `resolution: suspected`
+   node (+ `suspected_influence` edge) carrying that `evidence`. No hint → no box.
 5. **Assign display_ids**: N1.. for nodes, BB1.. for suspected, E1.. for edges.
 6. **Compute metrics deterministically** — do NOT hand-write numbers. Run
    `node spec/lint.mjs <map.json>`: it recomputes fan_in/out, flows_count, cycle_flag and
@@ -53,7 +55,7 @@ map from it (`<task-slug>.overview.json`). The overview is never built from code
 - `node spec/lint.mjs <map.json>` passes — register-map.mjs runs the same lint and hard-rejects on errors.
 - `meta.source_root` set (live code preview depends on it).
 - Perimeter closure: nothing in scope without a resolution.
-- `scan_coverage` filled honestly.
+- `scan_coverage` filled honestly (carried from researcher's finding — architect does not scan).
 - Language (contract §10): write all prose fields (`summary`, `evidence`, `edge.label`,
   `meta.title/task`, advisory text…) in the human's session language; keep enums,
   `display_id`s, ids and code-symbol `label`s canonical. Viewer UI stays English.

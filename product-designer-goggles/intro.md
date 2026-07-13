@@ -1,7 +1,0 @@
-When I start work on part of APP I do not familiar about, or I have to fix bug in some funcitonality I have never seen before, I need to understand first the "product" side of the scope I'm working - "what actually happens for the User/Buisness here" - I need the plain explanations of purpose, flow, and the "why" behind the technical implementation.
-
-I would like to see the diagrams, flows, and the "big picture" of the product side of the scope I'm working on. The AI should also cleansly define actually the scope to cover all the information that is needed - for example working on a bug chaning behavior of a specific component may affect other unexpected APP parts - and the Agent should lay out all the information that is needed to understand the full impact of the change and to plan the work accordingly.
-
-Also I want it to have feature to make user flow presentations with screenshots in order to show how the specific part looks in the APP and how it behaves in different scenarios. (This affects when we have a Frontend Related work).
-
-We already have a plugin providing similar functionality but in terms of implementation details, not the product side - `arcitect-goggles`. Take it as reference for UI and general vision of implemneted IDE but in different scope. Also to make a real app executions and gathering the presentation materials on real running app you can use `project-executor` plugin.

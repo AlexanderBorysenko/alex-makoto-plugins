@@ -18,7 +18,9 @@ Skills reference this file; violations make the map invalid.
   "Large systems usually have X" is NOT evidence. No hint → no box. Spam kills the feature.
 - Confirmed elements NEVER skip through: broad-scan may only produce `suspected`;
   promotion to `confirmed` happens via (a) deep-dive investigation, (b) explicit human
-  confirmation ("yes, that scheduler exists and does X"), or (c) manifest entry.
+  confirmation ("yes, that scheduler exists and does X"), (c) manifest entry, or
+  (d) a grounded app run (via the shared project-executor module) that observes the
+  influence — set `verified_by` honestly from the observed behavior.
 - Dismissed boxes are KEPT in the document with the dismissal reason in `evidence`.
 - Every `suspected_influence` edge carries its own `evidence`.
 - On confirmation of a box: retype the node kind, retype/redirect its edges,

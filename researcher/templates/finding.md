@@ -23,9 +23,15 @@ be prefixed "unverified:".>
 
 ## For goggles
 
-<PCE vocabulary so architect/product-designer goggles can consume this
-as pre-verified evidence. Empty sections allowed.>
+<FLAT facts only, so architect/product-designer goggles can consume this as pre-verified
+evidence. NO PCE vocabulary — no display_ids, no resolution states, no suspected_influence
+edges. Researcher emits raw facts + hints; goggles does the PCE interpretation. Empty
+sections allowed.>
 
-- Nodes: <name — file — kind (service|module|job|store|...)>
-- Edges: <from → to — kind (calls|reads|writes|publishes|...)>
-- Black-box suspects: <hidden influences worth a perimeter-scan: triggers, cron, broker behavior>
+- Structural facts: <name — file:line — kind (service|module|job|store|...)>. Every one carries
+  a `source_ref`; these become confirmed nodes/edges in the map.
+- Edges: <from → to — kind (calls|reads|writes|publishes|...) — file:line>
+- Boundary-hints: <raw out-of-scope touchpoint reaching into the in-scope subsystem — file:line
+  evidence — one-line relevance>. E.g. a migration trigger, cron/scheduler, broker binding,
+  shared table. Flat only: do NOT assign a box id, resolution, or edge — goggles formalizes these
+  into `suspected` black boxes at its perimeter gate.

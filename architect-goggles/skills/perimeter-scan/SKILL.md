@@ -13,9 +13,13 @@ Resolves `suspected` nodes on an existing map. Obey `spec/agent-contract.md` §2
    NEVER auto-expand to other boxes; expensive scans (git change-coupling mining) also
    only run here or on explicit request.
 2. Per box, investigate the concrete evidence trail: read the migration/config/annotation,
-   trace what it actually does, find where it touches the in-focus subsystem.
+   trace what it actually does, find where it touches the in-focus subsystem. For runtime /
+   async / broker boxes that static reading cannot settle, request a grounded run through the
+   shared project-executor module and set `verified_by` from the observed behavior
+   (agent-contract §2d) — routed-to, not owned; researcher-style dynamic confirmation.
 3. Resolve:
-   - **confirm** → set proper `kind`, `resolution: confirmed`, fill `summary` + `source_refs`,
+   - **confirm** (via deep-dive, human, manifest, or a dynamic run — §2a–d) → set proper `kind`,
+     `resolution: confirmed`, fill `summary` + `source_refs`,
      convert `suspected_influence` edges to real kinds, and CHECK EXISTING FLOWS —
      inject new arrows/steps where the confirmed mechanism participates (e.g. "between
      steps 5 and 6 a trigger fires").
