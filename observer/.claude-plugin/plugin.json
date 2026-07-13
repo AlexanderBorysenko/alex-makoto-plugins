@@ -1,0 +1,8 @@
+{
+  "name": "observer",
+  "version": "0.1.0",
+  "description": "Self-improvement loop for the plugin suite: audits sessions (transcript digest + journals/registries/git) against what the plugins prescribe, proposes user-gated unified-diff patches to plugin source in this repo, commits approved ones, and tracks finding recurrence.",
+  "author": {
+    "name": "alex.borysenko"
+  }
+}

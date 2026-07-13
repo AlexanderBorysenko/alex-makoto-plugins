@@ -11,3 +11,4 @@ Steps:
 4. Cascade updates to Related Documents listed in the journal: plans, specs, architecture cache (narrative file). If components changed, create/rename/delete the relevant `./.claude-memory/arch/<component>.md` files. Do not edit spoke-owned documents (findings, reports, wiki pages) — their plugins own them.
 5. Check Cross-task findings: if `.claude-research/` exists, promote overlapping findings there (researcher owns verified facts) and link; otherwise fall back to `./.claude-memory/findings/<topic>.md` (with `summary:` in frontmatter).
 6. Verify and report in 2-3 lines: files updated + new first-bullet Next Step.
+7. If the `observer` plugin is installed, offer once: "Run observer audit on this session? (/observe)". On yes, invoke the `observer` skill; on no, skip silently.

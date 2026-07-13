@@ -9,6 +9,7 @@ Match the user's intent to a plugin BEFORE improvising with raw tools. These plu
 - "run it", "verify it works", "reproduce the bug", tests/builds/browser flows, evidence for a claim → **project-executor** (execute skill). Prefer it over ad-hoc Bash app-driving.
 - starting/resuming/switching/wrapping up work, "where did we leave off", session memory → **tasks-manager** (`/task-start`, `/task-new`, `/task-wrap-up`).
 - "work on X in parallel", isolated branch, agent will mutate tracked files, long build blocking main tree → **worktrees** (`/wt-new`, `/wt-list`, `/wt-cleanup`). Its protocol governs native EnterWorktree/isolation too.
+- "audit this session", "what went wrong", "improve the plugins", post-work reflection → **observer** (`/observe`). Also offered at tasks-manager wrap-up.
 
 **Handoffs (hub-and-spoke):**
 - **tasks-manager is the hub.** Other plugins own their domain memory; tasks-manager owns task journals + the cross-plugin document index. Never copy spoke documents into journals — link them via the mem-index.
