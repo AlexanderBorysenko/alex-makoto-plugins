@@ -11,9 +11,14 @@ the flow needs): `spec/memory-contract.md`, `spec/evidence-contract.md`,
 
 ## Setup (every invocation)
 
-1. Memory init check: if `.claude-memory/executions/runbook.md` missing, run
-   /exec-mem `init` first. Cold-start read = `index.md`, then only the wiki
-   pages the flow needs (never journal/reports).
+1. **Memory init check (BLOCKING).** If `.claude-memory/executions/runbook.md`
+   is missing OR any of the five canonical pages (`env.md`, `runbook.md`,
+   `data.md`, `browser.md`, `gotchas.md`) is missing, you MUST auto-run
+   /exec-mem `init` immediately — do not proceed to step 2 until the wiki
+   layout exists. Init is idempotent and takes <1s. Do NOT fall back to raw
+   Bash/Docker for start/test/repro when init is the correct next step; the
+   whole point of /execute is durable memory. Cold-start read after init =
+   `index.md`, then only the wiki pages the flow needs (never journal/reports).
 2. Choose `runid` = `r<YYYYMMDD><letter>` (letter = first unused today, check reports/).
 3. Create report dir `reports/<YYYY-MM-DD-slug>/` with `logs/` and `screenshots/`.
 4. Crash-heal: grep repo for `EXEC-TRACE:` — orphaned tags from a dead session ⇒

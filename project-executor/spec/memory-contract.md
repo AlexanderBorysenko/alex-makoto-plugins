@@ -47,7 +47,20 @@ never move — flows and subagents reference them by fixed path.
   `- [[runbook]] — verified commands (7 entries, oldest verified 2026-07-01)`.
   Regenerated at every distillation; must never go stale relative to the pages.
 
-## Init (idempotent — run whenever a canonical file is missing)
+## Init trigger (who runs it, when)
+
+Init is idempotent. It runs in two places:
+
+- **Main thread, before the first raw command that would otherwise fall to /execute.**
+  Signal comes from the SessionStart hook (`hooks/session-start.js`) which prints
+  the memory state at startup. If state is `missing` or `empty`, the main thread
+  MUST auto-run /exec-mem init BEFORE the first Bash/PowerShell/Docker call that
+  matches an execute-shaped intent (run/start/test/reproduce). Silently bypassing
+  the plugin because its memory dir does not exist is a bug, not a workaround.
+- **Inside /execute, Setup step 1.** Guard-rail: if the main thread missed the
+  signal, the skill MUST auto-run init and MUST NOT proceed until runbook.md exists.
+
+## Init procedure (idempotent — run whenever a canonical file is missing)
 
 1. Create missing directories/files from the templates below (including `index.md`
    and `schema.md`; `wiki/` is created lazily on first concept page).
