@@ -23,4 +23,5 @@ Pass criteria in parentheses.
 7. Agentic entry: spawn the `executor` agent with request from scenario 5
    (final message = report path + verdict line + one paragraph; no questions asked)
 8. Memory quality: after 1-7, `/exec-mem show`
-   (schema files short, stamps current, journal distilled, no raw dumps)
+   (wiki pages short, index.md matches pages, stamps current, journal distilled,
+   no raw dumps)

@@ -15,9 +15,12 @@ reports — while maintaining per-project memory so every future run starts smar
 
 ## Memory (per target project)
 
-`.claude-memory/executions/` — `env.md`, `runbook.md` (verified: stamps, 14-day
-staleness), `data.md` (local-only credentials, gitignore-guarded), `browser.md`,
-`gotchas.md`, `journal/`, `reports/`. See `spec/memory-contract.md`.
+`.claude-memory/executions/` is an LLM Wiki maintained by the executor:
+`index.md` (entry point) + `schema.md` (bookkeeping rules) + canonical pages
+`env.md`, `runbook.md` (verified: stamps, 14-day staleness), `data.md`
+(local-only credentials, gitignore-guarded), `browser.md`, `gotchas.md`, plus
+optional `wiki/` concept pages — compiled at distillation from the raw sources
+`journal/` and `reports/`. See `spec/memory-contract.md`.
 
 ## Design principles
 

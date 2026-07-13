@@ -12,7 +12,8 @@ the flow needs): `spec/memory-contract.md`, `spec/evidence-contract.md`,
 ## Setup (every invocation)
 
 1. Memory init check: if `.claude-memory/executions/runbook.md` missing, run
-   /exec-mem `init` first. Cold-start read = schema files only.
+   /exec-mem `init` first. Cold-start read = `index.md`, then only the wiki
+   pages the flow needs (never journal/reports).
 2. Choose `runid` = `r<YYYYMMDD><letter>` (letter = first unused today, check reports/).
 3. Create report dir `reports/<YYYY-MM-DD-slug>/` with `logs/` and `screenshots/`.
 4. Crash-heal: grep repo for `EXEC-TRACE:` — orphaned tags from a dead session ⇒
@@ -89,6 +90,7 @@ evidence is insufficient.
 
 ## Wrap-up (every flow)
 
-1. Journal → distill into schema files per memory contract.
+1. Journal → distill into the wiki per memory contract (update/supersede
+   entries, regenerate `index.md`).
 2. Write report per `spec/report-contract.md` (frontmatter exact).
 3. Interactive: print report path + verdict + 3-line summary.
