@@ -78,8 +78,38 @@ Every page starts with an HTML comment stating its purpose, then entries.
 `wiki/<slug>.md`: freeform, but starts with one-sentence purpose and ends with a
   `links:` line of related `[[pages]]`.
 
-`schema.md` (seeded at init): the conventions above restated as the project's own
-rules, plus any project-specific additions.
+## Init seed templates
+
+`index.md` (regenerated at every distillation — never hand-edited):
+
+    <!-- Wiki entry point. Regenerated at distillation; do not edit by hand. -->
+    - [[runbook]] — verified commands (0 entries)
+    - [[env]] — services, ports, prereqs (0 entries)
+    - [[data]] — datasets, test users (0 entries)
+    - [[browser]] — routines, selectors (0 entries)
+    - [[gotchas]] — failure → resolution pairs (0 entries)
+
+Entry-line shape once pages fill: `- [[runbook]] — verified commands (7 entries, oldest verified 2026-07-01)`.
+Concept pages append below the canonical five as `- [[wiki/<slug>]] — <one-line purpose>`.
+
+`schema.md`:
+
+    <!-- Bookkeeping rules for this project's execution wiki. Seeded from
+         project-executor spec/memory-contract.md. Refine at distillation with a
+         journaled rationale. Layout + the five canonical pages never change. -->
+
+    ## Conventions (contract defaults)
+    - Update existing entries before creating anything new; no duplicates.
+    - Concept pages only for cross-cutting knowledge: wiki/<kebab-slug>.md,
+      linked from the pages that touch it, listed in index.md.
+    - Supersede, never silently delete: replace in place, journal the
+      supersession, add a gotcha if the old form is a trap.
+    - verified: older than 14 days = stale; re-verify before relying on it.
+    - Pages stay short; one-off observations stay in the journal.
+    - Regenerate index.md at every distillation.
+
+    ## Project-specific rules
+    (none yet)
 
 ## Journal
 
