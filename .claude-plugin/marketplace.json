@@ -51,7 +51,7 @@
     {
       "name": "project-executor",
       "source": "./project-executor",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "description": "Execution memory + real local execution: lifecycle, tests, browser flows, instrumented bug repro, evidence-backed reports."
     }
   ]
