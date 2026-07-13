@@ -9,13 +9,13 @@
     {
       "name": "orchestrator",
       "source": "./orchestrator",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told."
     },
     {
       "name": "tasks-manager",
       "source": "./tasks-manager",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "description": "Task journals + cross-plugin memory index (hub-and-spoke, Karpathy LLM-wiki framing). Formerly memory-system: spokes own domain memory; this hub owns task state and the link index."
     },
     {
@@ -33,7 +33,7 @@
     {
       "name": "researcher",
       "source": "./researcher",
-      "version": "0.3.1",
+      "version": "0.4.0",
       "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory."
     },
     {

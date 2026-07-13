@@ -67,8 +67,17 @@ function mdFiles(dir) {
   }
 }
 
+// Canonical store: .claude-memory/research; legacy fallback: .claude-research.
+function storeRoot(root) {
+  const canonical = path.join(root, '.claude-memory', 'research');
+  if (fs.existsSync(canonical)) return canonical;
+  const legacy = path.join(root, '.claude-research');
+  if (fs.existsSync(legacy)) return legacy;
+  return canonical;
+}
+
 function list(root) {
-  const store = path.join(root, '.claude-research');
+  const store = storeRoot(root);
   const findingFiles = mdFiles(path.join(store, 'findings'));
   const wikiFiles = mdFiles(path.join(store, 'wiki'));
   if (findingFiles.length === 0 && wikiFiles.length === 0) {

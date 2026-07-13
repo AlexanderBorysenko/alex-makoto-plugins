@@ -24,7 +24,7 @@ function writeRegistry(root, sources) {
 }
 
 const REGISTRY = [
-  { name: 'research-findings', root: '.claude-research/findings', match: '\\.md$' },
+  { name: 'research-findings', root: '.claude-memory/research/findings', match: '\\.md$' },
   { name: 'execution-reports', root: '.claude-memory/executions/reports', match: 'report\\.md$' },
   { name: 'superpowers-specs', root: 'docs/superpowers/specs', match: '\\.md$' },
 ];
@@ -41,7 +41,7 @@ const REGISTRY = [
   const root = makeProject();
   writeRegistry(root, REGISTRY);
 
-  const fDir = path.join(root, '.claude-research', 'findings');
+  const fDir = path.join(root, '.claude-memory/research', 'findings');
   fs.mkdirSync(fDir, { recursive: true });
   fs.writeFileSync(
     path.join(fDir, 'auth-flow.md'),
@@ -64,7 +64,7 @@ const REGISTRY = [
 
   const out = run(['docs', '--base', path.join(root, '.claude-memory')], root);
   assert.ok(out.includes('## research-findings'), `group header: ${out}`);
-  assert.ok(out.includes('[Auth flow](.claude-research/findings/auth-flow.md)'), `finding line: ${out}`);
+  assert.ok(out.includes('[Auth flow](.claude-memory/research/findings/auth-flow.md)'), `finding line: ${out}`);
   assert.ok(out.includes('2026-07-10'), `finding date: ${out}`);
   assert.ok(out.includes('task:fix-login'), `task tag: ${out}`);
   assert.ok(out.includes('## execution-reports'), `reports group: ${out}`);
@@ -79,7 +79,7 @@ const REGISTRY = [
 {
   const root = makeProject();
   writeRegistry(root, REGISTRY);
-  const fDir = path.join(root, '.claude-research', 'findings');
+  const fDir = path.join(root, '.claude-memory/research', 'findings');
   fs.mkdirSync(fDir, { recursive: true });
   fs.writeFileSync(
     path.join(fDir, 'tagged.md'),
@@ -112,7 +112,7 @@ const REGISTRY = [
 {
   const root = makeProject();
   writeRegistry(root, [REGISTRY[0]]);
-  const fDir = path.join(root, '.claude-research', 'findings');
+  const fDir = path.join(root, '.claude-memory/research', 'findings');
   fs.mkdirSync(fDir, { recursive: true });
   fs.writeFileSync(
     path.join(fDir, 'x.md'),
@@ -123,7 +123,7 @@ const REGISTRY = [
   assert.ok(Array.isArray(j['research-findings']), `json group array: ${out}`);
   assert.strictEqual(j['research-findings'][0].title, 'X');
   assert.strictEqual(j['research-findings'][0].task, 't1');
-  assert.strictEqual(j['research-findings'][0].file, '.claude-research/findings/x.md');
+  assert.strictEqual(j['research-findings'][0].file, '.claude-memory/research/findings/x.md');
 }
 
 console.log('mem-docs.test.js: all assertions passed');

@@ -16,7 +16,7 @@ You are operating with a disciplined task-memory workflow. The journal is the ta
 Hub and spokes:
 
 - **Hub — `./.claude-memory/`** (this plugin; directory name kept for compatibility — project-executor and existing projects depend on it): task journals (`tasks/`), the source registry (`sources.json`), and — hosted, not owned — the durable architecture narrative (`architecture_cache.md` + `arch/`). The narrative is project notes this hub keeps until a dedicated architecture spoke owns durable arch docs; do not grow it beyond its templates. First priority: task decisions and state. Second: the cross-plugin document index.
-- **Spokes — other plugins' stores, linked not copied.** Examples (any registered source counts, this list is not closed): `.claude-research/` (researcher: verified findings), `.claude-memory/executions/` (project-executor: runbook wiki, journal, reports), `docs/superpowers/` (specs and plans), goggles map files. Each spoke owns its own format, staleness rules, and lifecycle. **Never write into a spoke store from this skill; never re-verify or restate spoke content in a journal — link it.**
+- **Spokes — other plugins' stores, linked not copied.** Examples (any registered source counts, this list is not closed): `.claude-memory/research/` (researcher: verified findings), `.claude-memory/executions/` (project-executor: runbook wiki, journal, reports), `docs/superpowers/` (specs and plans), goggles map files. Each spoke owns its own format, staleness rules, and lifecycle. **Never write into a spoke store from this skill; never re-verify or restate spoke content in a journal — link it.**
 - **Auto-memory** (harness-managed by Claude Code, lives outside the repo): cross-project / user-level only. Preferences, role context, references to external systems. **You do not manage auto-memory from this skill.**
 
 Never duplicate project-specific content into auto-memory. If it is about this project's code, components, tasks, or decisions, it goes in `./.claude-memory/` — or in the spoke that owns that fact type, with a link from the journal.
@@ -30,7 +30,7 @@ Indexes (task list, component list, findings list, cross-plugin document list) a
 ````json
 {
   "sources": [
-    { "name": "research-findings", "root": ".claude-research/findings", "match": "\\.md$" },
+    { "name": "research-findings", "root": ".claude-memory/research/findings", "match": "\\.md$" },
     { "name": "execution-reports", "root": ".claude-memory/executions/reports", "match": "report\\.md$" },
     { "name": "superpowers-specs", "root": "docs/superpowers/specs", "match": "\\.md$" },
     { "name": "superpowers-plans", "root": "docs/superpowers/plans", "match": "\\.md$" }
@@ -181,7 +181,7 @@ Wrap-up operates on the **task(s) worked on this session** — identified from c
    - `arch/<component>.md` files -> create, rename, or delete as needed. The component index follows automatically — no separate index to maintain.
    - Mark obsolete or superseded related docs accordingly.
    - Spoke-owned documents (findings, reports, wiki pages) are NOT edited from here — their plugins own them.
-4. **Cross-task findings:** if any Finding in the wrapped-up task overlaps a finding in another open/recent task, promote it. **If the researcher plugin's `.claude-research/` store exists, promote there** (it owns verified facts, with citations and staleness) and link from each journal; only fall back to a local `findings/<topic>.md` when no researcher store exists.
+4. **Cross-task findings:** if any Finding in the wrapped-up task overlaps a finding in another open/recent task, promote it. **If the researcher plugin's `.claude-memory/research/` store exists, promote there** (it owns verified facts, with citations and staleness) and link from each journal; only fall back to a local `findings/<topic>.md` when no researcher store exists.
 5. **Verify before claiming done:** state which files were updated and the new Next Steps first bullet, in 2-3 lines max.
 
 ## Resuming, archiving, purging
@@ -195,7 +195,7 @@ There is no "switch active task" operation, because no task is ever marked activ
 
 ## Cross-task findings
 
-**Deprecated in favor of the researcher spoke.** When `.claude-research/` exists, cross-task verified facts belong there (researcher owns citations + git-HEAD staleness); journals link to the finding doc. The local mechanism below remains only as a fallback for projects without the researcher plugin.
+**Deprecated in favor of the researcher spoke.** When `.claude-memory/research/` exists, cross-task verified facts belong there (researcher owns citations + git-HEAD staleness); journals link to the finding doc. The local mechanism below remains only as a fallback for projects without the researcher plugin.
 
 When a Finding appears across two or more per-task journals (and no researcher store exists), promote it to a shared topic file at `./.claude-memory/findings/<topic>.md` and link from each journal's Findings section.
 

@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: Deterministic research workflow for codebase/domain questions. Use whenever the user asks to investigate, look up, trace, or understand code or data — or types /research or /research-setup. Triage L1/L2/L3, route to Graphify/Serena/context-mode/web by table, ground every claim with evidence pointers, persist reusable findings to .claude-research/.
+description: Deterministic research workflow for codebase/domain questions. Use whenever the user asks to investigate, look up, trace, or understand code or data — or types /research or /research-setup. Triage L1/L2/L3, route to Graphify/Serena/context-mode/web by table, ground every claim with evidence pointers, persist reusable findings to .claude-memory/research/.
 ---
 
 # Researcher
@@ -31,12 +31,12 @@ Run `node ${CLAUDE_PLUGIN_ROOT}/bin/freshness.js` (or reuse the SessionStart sta
 
 **Memory:**
 
-- If `.claude-research/` exists: read `.claude-research/config.md` (tool availability + domain notes), then run
+- If `.claude-memory/research/` exists: read `.claude-memory/research/config.md` (tool availability + domain notes), then run
   `node ${CLAUDE_PLUGIN_ROOT}/bin/research-index.js list` and scan for findings and wiki topic pages relevant to the question.
   Enter through the wiki page when one covers the topic (compiled current truth), then follow its links down to findings.
   **Wiki pages are navigation, not evidence** — cite the underlying finding, never the page.
   A relevant non-STALE finding may be cited as evidence; a `STALE?` finding or wiki page must be re-verified before use.
-- If `.claude-research/` does not exist: proceed without memory; offer `/research-setup` once at the end of the answer.
+- If `.claude-memory/research/` does not exist: proceed without memory; offer `/research-setup` once at the end of the answer.
 
 ## Step 1 — triage
 
@@ -61,7 +61,7 @@ an unavailable tool — say which tool was unavailable.
 |-------|---------|-----------|--------|
 | **L1** | Serena `find_symbol` / `find_referencing_symbols`; `graphify query` for structure questions | Grep | Inline answer + evidence pointer. Nothing persisted. |
 | **L2** | `graphify query` + `graphify path`; Serena references/implementations for the code level | context-mode `ctx_batch_execute` when outputs are large | Inline answer; persist a finding if reusable across sessions. |
-| **L3** | `graphify explain` + `graphify-out/wiki/`; web research (context7 for libraries, firecrawl/WebSearch otherwise); parallel Explore subagents for wide sweeps | context-mode for processing; `.claude-memory/architecture_cache.md` as read-only context | Findings doc in `.claude-research/findings/` + INDEX.md line. |
+| **L3** | `graphify explain` + `graphify-out/wiki/`; web research (context7 for libraries, firecrawl/WebSearch otherwise); parallel Explore subagents for wide sweeps | context-mode for processing; `.claude-memory/architecture_cache.md` as read-only context | Findings doc in `.claude-memory/research/findings/` + INDEX.md line. |
 
 **Dynamic confirmation (independent module, routed-to not owned):** to confirm a runtime /
 async / broker / trigger-side-effect hypothesis that static reading cannot settle, route to the
@@ -97,8 +97,8 @@ Walk the draft answer claim by claim:
    `head:` = current `git rev-parse HEAD`; `files:` = the evidence files cited;
    `task-slug:` = the tasks-manager task journal slug when a task is in focus (drop the line otherwise) —
    the tasks-manager hub links findings to task journals through it.
-2. Save as `.claude-research/findings/<kebab-slug>.md`.
-3. Append to `.claude-research/INDEX.md`: `- [Title](findings/slug.md) — <level> — <YYYY-MM-DD>`.
+2. Save as `.claude-memory/research/findings/<kebab-slug>.md`.
+3. Append to `.claude-memory/research/INDEX.md`: `- [Title](findings/slug.md) — <level> — <YYYY-MM-DD>`.
 4. Fill the **For goggles** section whenever the finding touched structure — as FLAT facts only:
    structural facts (with `source_ref`) + raw boundary-hints (touchpoint + `file:line` + relevance).
    NO PCE shapes — no display_ids, resolution states, or suspected_influence edges; goggles does that
@@ -118,10 +118,10 @@ Boundary: never write into `.claude-memory/` — that store belongs to the tasks
 
 ## Setup workflow (/research-setup)
 
-1. If `.claude-research/` missing: create `config.md` from `${CLAUDE_PLUGIN_ROOT}/templates/config.md`
+1. If `.claude-memory/research/` missing: create `config.md` from `${CLAUDE_PLUGIN_ROOT}/templates/config.md`
    (ask for project name + domain notes; for tool availability, prefill from the SessionStart status block),
    `INDEX.md` from `templates/research-index.md`, and an empty `findings/` dir.
-2. Ask whether `.claude-research/` should be committed or gitignored; record the choice in config.md
+2. Ask whether `.claude-memory/research/` should be committed or gitignored; record the choice in config.md
    and add a `.gitignore` entry if gitignored.
 3. `graphify-out/graph.json` missing and graphify wanted: state that `graphify index .` costs API tokens
    and can take a while; run it ONLY after explicit approval. **Model pinning for indexing:** dispatch any

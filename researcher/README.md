@@ -7,10 +7,10 @@ Claude Code plugin: deterministic research orchestration. v0.3.0.
 **Solution:** triage → route → execute → ground → persist.
 
 - **Triage** every research question into L1 (lookup) / L2 (investigation) / L3 (deep research); level stated before executing.
-- **Route** by table: Serena for symbols, graphify for structure, context-mode for big outputs, context7/firecrawl/WebSearch for external — respecting per-project availability in `.claude-research/config.md`.
+- **Route** by table: Serena for symbols, graphify for structure, context-mode for big outputs, context7/firecrawl/WebSearch for external — respecting per-project availability in `.claude-memory/research/config.md`.
 - **Ground**: every claim cites `file:line` / tool output / finding; "not found" is a valid answer; READ vs ASSUMED separated; verify-gate checklist before answering.
-- **Persist**: findings docs in `.claude-research/findings/` with git-HEAD staleness marking (`bin/research-index.js list`), consumable by architect/product-designer goggles via the "For goggles" section.
-- **Wiki layer** (v0.3, Karpathy LLM-wiki pattern): findings stay the immutable raw evidence layer; `.claude-research/wiki/<topic>.md` pages compile the current truth per topic once 3+ findings share it. Pages link down to findings; **wiki = navigation, findings = evidence**. The index CLI lists both and propagates staleness from findings to pages.
+- **Persist**: findings docs in `.claude-memory/research/findings/` with git-HEAD staleness marking (`bin/research-index.js list`), consumable by architect/product-designer goggles via the "For goggles" section.
+- **Wiki layer** (v0.3, Karpathy LLM-wiki pattern): findings stay the immutable raw evidence layer; `.claude-memory/research/wiki/<topic>.md` pages compile the current truth per topic once 3+ findings share it. Pages link down to findings; **wiki = navigation, findings = evidence**. The index CLI lists both and propagates staleness from findings to pages.
 - **Freshness** (v0.2): index freshness validated at session start and /research step 0. Free fixes run automatically — `graphify update .` (AST-only) when stale/unbaselined, graphify-out copy from the main repo root in git worktrees, serena onboarding. Paid fixes (fresh `graphify index .`) always ask and pin indexing subagents to haiku (sonnet on explicit quality request). Baseline marker: `graphify-out/.researcher-head`.
 
 ## Layout
@@ -25,7 +25,7 @@ Claude Code plugin: deterministic research orchestration. v0.3.0.
 ## Boundaries
 
 - Orchestrates graphify/Serena/context-mode — does not wrap or replace them.
-- `.claude-memory/` (tasks-manager plugin) = what we're doing; `.claude-research/` = what we verified true. No cross-writes.
+- `.claude-memory/` (tasks-manager plugin) = what we're doing; `.claude-memory/research/` = what we verified true. No cross-writes.
 - No silent expensive ops: graphify indexing always needs explicit approval.
 
 ## Tests

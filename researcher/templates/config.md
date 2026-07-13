@@ -21,4 +21,4 @@ those go in findings/. Examples: "wiki content is Ukrainian-language",
 
 ## Store policy
 
-- committed: <yes|no — whether .claude-research/ is committed to git>
+- committed: <yes|no — whether .claude-memory/research/ is committed to git>

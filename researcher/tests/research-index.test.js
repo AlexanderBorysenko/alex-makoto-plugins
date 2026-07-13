@@ -19,7 +19,7 @@ function makeRepo() {
 }
 
 function writeFinding(dir, slug, fm) {
-  const findingsDir = path.join(dir, '.claude-research', 'findings');
+  const findingsDir = path.join(dir, '.claude-memory/research', 'findings');
   fs.mkdirSync(findingsDir, { recursive: true });
   fs.writeFileSync(path.join(findingsDir, `${slug}.md`), fm);
 }
@@ -135,7 +135,7 @@ function writeFinding(dir, slug, fm) {
 }
 
 function writeWiki(dir, slug, fm) {
-  const wikiDir = path.join(dir, '.claude-research', 'wiki');
+  const wikiDir = path.join(dir, '.claude-memory/research', 'wiki');
   fs.mkdirSync(wikiDir, { recursive: true });
   fs.writeFileSync(path.join(wikiDir, `${slug}.md`), fm);
 }
@@ -211,3 +211,18 @@ function writeWiki(dir, slug, fm) {
 }
 
 console.log('research-index.test.js: all assertions passed');
+
+// Case 12: legacy store at .claude-research still readable when canonical path absent
+{
+  const dir = makeRepo();
+  const legacyDir = path.join(dir, '.claude-research', 'findings');
+  fs.mkdirSync(legacyDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(legacyDir, 'old.md'),
+    `---\ntitle: Old finding\nlevel: L3\ndate: 2026-07-13\nfiles: []\nhead: ''\n---\n\n# Old\n`
+  );
+  const out = sh('node', [script, 'list', dir], dir);
+  assert.ok(out.includes('old.md'), `legacy store listed: ${out}`);
+}
+
+console.log('research-index.test.js: legacy fallback assertion passed');

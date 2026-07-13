@@ -55,8 +55,19 @@ function assessSerena(root) {
   return { status: onboarded ? 'ready' : 'not-onboarded' };
 }
 
+// Canonical store: .claude-memory/research (shared plugin hub, one gitignore).
+// Legacy fallback: .claude-research (pre-0.4 layout) — read if it exists and the
+// canonical path does not.
+function storeRoot(root) {
+  const canonical = path.join(root, '.claude-memory', 'research');
+  if (fs.existsSync(canonical)) return canonical;
+  const legacy = path.join(root, '.claude-research');
+  if (fs.existsSync(legacy)) return legacy;
+  return canonical;
+}
+
 function assessStore(root) {
-  const store = path.join(root, '.claude-research');
+  const store = storeRoot(root);
   if (!fs.existsSync(store)) return { status: 'missing', findings: 0, project: '' };
   let findings = 0;
   let project = '';

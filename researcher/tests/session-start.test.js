@@ -54,13 +54,13 @@ function makeRepo() {
   fs.mkdirSync(path.join(dir, '.serena', 'memories'), { recursive: true });
   fs.writeFileSync(path.join(dir, '.serena', 'project.yml'), 'name: demo\n');
   fs.writeFileSync(path.join(dir, '.serena', 'memories', 'overview.md'), 'x');
-  fs.mkdirSync(path.join(dir, '.claude-research', 'findings'), { recursive: true });
+  fs.mkdirSync(path.join(dir, '.claude-memory/research', 'findings'), { recursive: true });
   fs.writeFileSync(
-    path.join(dir, '.claude-research', 'INDEX.md'),
+    path.join(dir, '.claude-memory/research', 'INDEX.md'),
     '# Research index\n\n- [Auth flow](findings/auth-flow.md) — L2 — 2026-07-12\n- [DB triggers](findings/db-triggers.md) — L2 — 2026-07-12\n'
   );
   fs.writeFileSync(
-    path.join(dir, '.claude-research', 'config.md'),
+    path.join(dir, '.claude-memory/research', 'config.md'),
     '---\nproject: Karpaty Wiki LLM\n---\n'
   );
   const out = run(dir);
@@ -77,8 +77,8 @@ function makeRepo() {
 // Case 3: partial — store exists but graphify missing → setup offer names missing piece only
 {
   const dir = tmpDir();
-  fs.mkdirSync(path.join(dir, '.claude-research', 'findings'), { recursive: true });
-  fs.writeFileSync(path.join(dir, '.claude-research', 'INDEX.md'), '# Research index\n');
+  fs.mkdirSync(path.join(dir, '.claude-memory/research', 'findings'), { recursive: true });
+  fs.writeFileSync(path.join(dir, '.claude-memory/research', 'INDEX.md'), '# Research index\n');
   const out = run(dir);
   assert.ok(out.includes('graphify: missing'), `graphify status: ${out}`);
   assert.ok(out.includes('research store: ready'), `store status: ${out}`);
