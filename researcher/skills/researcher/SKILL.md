@@ -20,14 +20,18 @@ that does not exist. Flow: **triage → route → execute → ground → (persis
 
 ## Step 0 — load state + freshness auto-fix
 
-**Freshness (free ops run automatically, no approval; paid ops always ask):**
+**Freshness + dependency gate (BLOCKING). Free ops run automatically, no
+approval; paid ops always ask. Missing dependencies are HARD BLOCKERS — do
+NOT continue triage until each dependency below is in a usable state or the
+user explicitly waives it in the same message.**
 
 Run `node ${CLAUDE_PLUGIN_ROOT}/bin/freshness.js` (or reuse the SessionStart status block if this session already printed one) and act on each status:
 
 - `graphify: stale` or `graphify: unbaselined` → run `graphify update .` (AST-only, no LLM, free), then baseline: `git rev-parse HEAD > graphify-out/.researcher-head`.
 - `graphify: missing — copyable from <main root>` (git worktree) → copy the `graphify-out/` directory from the main repo root into this worktree, run `graphify update .`, write the baseline marker. Never point queries at the main root's graph directly — it reflects another branch.
 - `serena: not onboarded` → activate the project (`mcp__plugin_serena_serena__activate_project`) and run onboarding (free).
-- `graphify: missing` (no copy source) → do NOT index silently; note it, continue with the other tools, offer `/research-setup` once at the end of the answer.
+- `graphify: missing` (no copy source) → STOP. State: "graphify graph missing; /research needs it. Options: (1) run `graphify index .` — paid, ask cost; (2) waive for this question and I proceed on serena+web only." Do NOT continue Step 1 until the user picks.
+- `serena: missing` (MCP server not installed) → STOP. State: "serena MCP unavailable; /research needs it for L2/L3. Ask user to enable serena MCP OR waive and I proceed on graphify+web only."
 
 **Memory:**
 
@@ -36,7 +40,7 @@ Run `node ${CLAUDE_PLUGIN_ROOT}/bin/freshness.js` (or reuse the SessionStart sta
   Enter through the wiki page when one covers the topic (compiled current truth), then follow its links down to findings.
   **Wiki pages are navigation, not evidence** — cite the underlying finding, never the page.
   A relevant non-STALE finding may be cited as evidence; a `STALE?` finding or wiki page must be re-verified before use.
-- If `.claude-memory/research/` does not exist: proceed without memory; offer `/research-setup` once at the end of the answer.
+- If `.claude-memory/research/` does not exist: auto-run `/research-setup` (idempotent init: creates `.claude-memory/research/` scaffold — no API cost, <1s). Do NOT proceed without memory unless the user explicitly waives in the same message ("skip memory setup for this question"). Silent memory-less runs lose durable knowledge and cause the user to re-explain the same context every session.
 
 ## Step 1 — triage
 
