@@ -71,3 +71,28 @@ assets `.claude-memory/product/assets/<journey-id>/`, decks
 `flow_diffs` (journey regressions). Every diff op carries `rationale` in
 product language ("shoppers with saved carts lose the promo banner"), not
 implementation language.
+
+## §11 Language
+A map has two registers; do NOT mix them.
+
+- **Canonical — ALWAYS English / verbatim, never translated:** enum values (`kind`,
+  `resolution`, `edge.kind`, `arrow.type`, `verified_by`, diff `op`), `display_id`
+  (C1/S2/R3/BR1/E1/BB1, journeys J1, edges PE2), `id`, `source_refs` paths, metric keys,
+  and any `label` that is a real code symbol or route (`/checkout`, `PromoService`). These
+  are a shared human↔AI↔viewer coordinate system; translating them breaks references and
+  viewer chrome.
+- **Prose — the NATURAL LANGUAGE the human is using in this session:** all free-text the LLM
+  writes — `meta.title`, `meta.task`, `meta.analysis_scope`, `node.summary`, `business_why`,
+  `evidence`, `relevance`, `edge.label`, journey `goal`, `step.explanation`, `diffs[].rationale`,
+  `flow_diffs[].note`, and every `advisory` string.
+
+Detect the language from the ONGOING conversation, not just the task prompt: if the human is
+writing to you in language X, ALL prose is in X — mandatory, not best-effort. Default to English
+ONLY when the conversation itself is English. Keep ONE language across the whole document — never
+per-field mixed.
+
+**Do not confuse the two axes.** "Product language" everywhere else in this contract (§8, §10)
+means product-vs-implementation REGISTER ("shopper loses saved promo", not "PromoService
+signature changes") — it is ORTHOGONAL to natural language. Write the product register IN the
+session's natural language: a Ukrainian session yields Ukrainian product-register prose, not
+English. The viewer UI (buttons, tabs, hints) is always English and is NOT part of the map.

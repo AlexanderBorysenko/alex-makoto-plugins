@@ -7,7 +7,7 @@ description: Build a task-scoped PJM capability map — capabilities, screens, r
 
 Produces `.claude-memory/product/maps/<task-slug>.json` conforming to
 `spec/schema.v0.1.json`. Obey `spec/agent-contract.md` (all §§; especially
-§2 knowledge priority, §3 unsourced-why, §5 perimeter gate).
+§2 knowledge priority, §3 unsourced-why, §5 perimeter gate, §11 language).
 
 ## Procedure
 
@@ -42,3 +42,7 @@ Produces `.claude-memory/product/maps/<task-slug>.json` conforming to
 - No node without resolution; no suspected/dismissed without evidence.
 - Business "why" only with a source (§3) — else advisory.open_questions.
 - Do not build journeys here — that is journey-trace.
+- Language (§11): ALL prose (`meta.*`, `summary`, `business_why`, `evidence`, `relevance`,
+  advisory…) in the human's session language; enums, `display_id`s, ids and code/route `label`s
+  stay English. "Product language" means register (product-vs-implementation), NOT English —
+  write the product register IN the session language (Ukrainian session → Ukrainian prose).

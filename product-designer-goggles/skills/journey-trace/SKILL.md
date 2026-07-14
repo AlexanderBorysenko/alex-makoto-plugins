@@ -34,3 +34,5 @@ Extends an existing PJM map's `flows[]`. Obey `spec/agent-contract.md`
 - Every step's screen must be a screen node (lint enforces).
 - Never mark verified_by local_run without an actual run.
 - Bug journeys show WHERE the product breaks for the user, not stack traces.
+- Language (§11): `goal`, `explanation`, `business_why` and notes in the human's session
+  language; ids, enums, `display_id`s and screen/capability refs stay canonical English.

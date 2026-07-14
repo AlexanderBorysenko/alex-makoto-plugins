@@ -140,8 +140,10 @@ A map has two registers; do NOT mix them.
   `flow_diffs[].note`, and every `advisory` string (`summary`, hotspot `recommendation`,
   `notes[].text`, `residual_uncertainty`) plus `scan_coverage` descriptive text.
 
-Detect the language from the human's task prompt / conversation; default to English when
-ambiguous. Keep ONE language across the whole document — never per-field mixed. The viewer's
+Detect the language from the ONGOING conversation, not just the task prompt: if the human is
+writing to you in language X, ALL prose fields are in X — mandatory, not best-effort. Default
+to English ONLY when the conversation itself is English (a single ambiguous token is not a
+reason to fall back). Keep ONE language across the whole document — never per-field mixed. The viewer's
 own UI (buttons, tabs, hints, empty states) is always English and is NOT part of the map —
 never emit UI labels into the document to "match" it.
 

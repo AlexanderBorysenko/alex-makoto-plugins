@@ -26,6 +26,7 @@ Extends the task's PJM map with `diffs[]` and `flow_diffs[]`. Obey
    is written. Present the affected-journeys list in chat too (one line each).
 
 ## Rules
-- Product language everywhere ("shopper loses saved promo"), not
-  implementation language ("PromoService signature changes").
+- Product register everywhere ("shopper loses saved promo"), not
+  implementation ("PromoService signature changes") — and write that register
+  in the human's session language (§11), not defaulted to English.
 - No silent scope-trimming: if blast radius is huge, SAY it is huge.
