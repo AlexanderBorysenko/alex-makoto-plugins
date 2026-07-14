@@ -40,14 +40,27 @@ These plugins are the CORE workflow surface for this user. Do not avoid them bec
 
 **Failure mode this protocol prevents (seen 2026-07-13):** main thread noticed `.claude-memory/executions/` missing for project-executor, went ahead with 40 minutes of raw Bash/PowerShell/Docker, and only invoked /execute after the user explicitly demanded plugin init. Auto-init + hard-block eliminates that failure mode.
 
-## Defect claims: shape ≠ incidence (applies to EVERY bug/architecture conclusion, plugin or not)
+## ISSUE PROTOCOL — canonical, applies to EVERY bug/defect/architecture-risk conclusion (plugin or not)
 
-A code shape that PERMITS a failure is not evidence the failure HAPPENS. Whenever you (main thread or any agent) conclude "this is a bug / this is broken":
+This is the suite's single source for defect epistemics. Plugins (researcher, architect-goggles, product-designer-goggles) reference it — do not restate it elsewhere; patch it here.
 
-1. **Two ratings, always**: *shape* (code path exists — cite `file:line`) and *incidence* (fires in reality — logs, DB rows, support tickets, executor repro, or the honest phrase "incidence: unverified"). "Confirmed" may only ever describe shape.
-2. **Counterfactual check before reporting**: "if this fired in prod, what traces would exist, and did anyone look?" Absent expected traces = evidence against; unexamined traces = say so.
-3. **Ask, don't assume frequency**: probability comes from real user behavior and the deploy context. Unknown action frequency ("do editors edit posts after publication?") → ask the user directly.
-4. **Relevance triage**: every finding is `explains-the-symptom | adjacent | orthogonal` to the ticket in focus. Orthogonal → one-line parking lot, never the main narrative.
+A code shape that PERMITS a failure is not evidence the failure HAPPENS. Rules:
+
+1. **Two ratings, always**: *shape* (code path exists — cite `file:line`; "confirmed" may only ever describe this axis) and *incidence* (fires in reality — logs, DB rows, support tickets, executor repro, or the honest phrase "incidence: unverified"). Verdict words (BROKEN, bug, fails) are forbidden in any label/title/summary unless incidence is observed — shape-only findings say "permits X" / "no guard against X".
+2. **Counterfactual check before reporting**: "if this fired in prod, what traces would exist, and did anyone look?" Absent expected traces = evidence against; unexamined = say so.
+3. **Ask, don't assume frequency**: probability comes from real user behavior + deploy context. Unknown action frequency → ask the user directly.
+4. **Relevance triage**: `explains-the-symptom | adjacent | orthogonal` to the ticket in focus. Orthogonal → one line in the parking lot, never the main narrative.
 5. **Executor over rhetoric**: when a repro is cheap, run it (project-executor) instead of arguing statically.
 
-**Failure mode this section prevents (seen 2026-07-13, FN-1088):** agent labeled a bulletin mail-in-transaction shape "STILL BROKEN / confirmed" in maps and audit with zero production evidence; user had to challenge it, then dismissed six more theoretical edge cases the agent had presented without incidence assessment.
+**Per-issue template** (use verbatim in reports, findings, map advisory notes):
+
+```
+ISSUE: <one line — "permits X" phrasing unless incidence observed>
+shape:      confirmed|suspected — <file:line>
+incidence:  observed <artifact> | unverified — static shape only | counter-evidence <artifact>
+traces-if-real: <what would exist in logs/alerts/tickets; examined? found?>
+scenario:   <real user action + frequency; "ASK: <question>" when unknown>
+relevance:  explains-the-symptom | adjacent | orthogonal
+```
+
+**Failure mode this section prevents (2026-07-13, FN-1088):** agent labeled a bulletin mail-in-transaction shape "STILL BROKEN / confirmed" with zero production evidence; user had to challenge it, then dismissed six more theoretical edge cases presented without incidence assessment.

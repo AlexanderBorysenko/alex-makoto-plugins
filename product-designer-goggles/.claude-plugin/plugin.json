@@ -1,6 +1,6 @@
 {
   "name": "product-designer-goggles",
   "description": "Product Designer Goggles: the product-side sibling of Architect Goggles — task-scoped product maps (PJM) with a structural CAPABILITY view and a behavioral JOURNEY view, perimeter-gated product scoping, change review as product-impact diffs, user-flow presentations with real screenshots (via project-executor when installed), and a local viewer + HTML deck export.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": { "name": "Alex" }
 }

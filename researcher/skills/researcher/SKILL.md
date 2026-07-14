@@ -18,37 +18,15 @@ that does not exist. Flow: **triage → route → execute → ground → (persis
 5. Separate READ (I saw this code) from ASSUMED (I expect this based on pattern) — explicitly.
 6. If memory/graph contradicts current code, current code wins; mark the finding STALE?.
 
-## Defect-finding assessment (two-axis) — MANDATORY for any bug/defect claim
+## Defect claims — ISSUE PROTOCOL (mandatory)
 
-A code shape that *permits* a bug is not evidence the bug *fires*. Every defect
-finding carries TWO ratings, never one:
-
-- **Shape** (`shape: confirmed|suspected` + `file:line`) — the code path exists
-  and permits the failure. "Confirmed" is reserved for THIS axis only.
-- **Incidence** (`incidence: observed|unverified|counter-evidence`) — does it
-  actually fire? `observed` requires production/staging evidence: log lines,
-  DB rows (e.g. gaps or duplicates in history tables), support tickets, or an
-  executor-verified reproduction. Anything else is `incidence: unverified` —
-  say so in those words. Never let verdict words (BROKEN, bug, fails) into a
-  summary whose incidence is unverified.
-
-Before reporting a defect, run the checks:
-
-1. **Counterfactual trace** — "if this fired in prod, what traces would exist
-   (error logs, alerts, retries, support tickets)?" If those traces are absent
-   or unexamined, state that and downgrade confidence. Absence of expected
-   traces is evidence AGAINST incidence.
-2. **Scenario grounding** — probability comes from real user behavior and the
-   real deploy context (single-node? UTC-only? how often is that action even
-   performed?). When you don't know an action's frequency ("do editors edit
-   posts after publication?") — ASK the user; never substitute an assumed
-   probability.
-3. **Executor preference** — when a reproduction is cheap (one run, existing
-   seeds), route to project-executor and observe instead of arguing statically.
-4. **Relevance triage** — classify each finding against the ticket in focus:
-   `explains-the-symptom` | `adjacent` | `orthogonal`. Only the first two get
-   full write-ups; `orthogonal` findings go to a one-line **parking lot** at
-   the end, never into the main narrative.
+Any bug/defect/risk claim follows the suite's canonical **ISSUE PROTOCOL**
+(`orchestrator/index-rules.md`, injected every session): two-axis rating
+(shape vs incidence), counterfactual-trace check, ask-don't-assume frequency,
+relevance triage, executor-repro preference — and uses its per-issue template
+verbatim. Researcher-specific bindings: the template block goes into the
+finding's body; `orthogonal` issues go to a **Parking lot** section at the end
+of the answer/finding, one line each.
 
 ## Step 0 — load state + freshness auto-fix
 

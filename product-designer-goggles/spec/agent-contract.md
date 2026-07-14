@@ -60,17 +60,12 @@ generation on capture.
 script them in, never hand-write. Advisory: `summary`, `notes`
 (kind: ux|business|risk), `open_questions`, `residual_uncertainty`.
 
-**Defect claims — shape vs incidence.** Same two-axis rule as the PCE contract
-(architect-goggles §2b): a `bug_path` journey or a `kind: risk` note describing
-a defect must state `incidence: observed` (with the artifact — logs, DB rows,
-tickets, executor repro) or `incidence: unverified — static shape only`.
-Verdict words (BROKEN, bug) are forbidden in labels/summaries/titles unless
-incidence is observed — shape-only findings say "permits X". Each shape-only
-defect needs a counterfactual line in advisory (what traces would exist if it
-fired; were they examined). Unknown user-action frequency → direct question in
-`advisory.open_questions`, never an assumed probability. Each defect names its
-relevance to the task: explains-the-symptom | adjacent | orthogonal — orthogonal
-gets one advisory line, no journeys.
+**Defect claims — ISSUE PROTOCOL binding.** Defect epistemics follow the
+suite's canonical ISSUE PROTOCOL (`orchestrator/index-rules.md`, injected every
+session) — same binding as PCE §2b: `bug_path` journeys and `kind: risk` defect
+notes embed the per-issue template; verdict words only when `incidence:
+observed`; orthogonal issues get one advisory line, no journeys; open frequency
+questions go to `advisory.open_questions`.
 
 ## §9 Storage
 Target-project outputs: `.claude-memory/product/maps/<task-slug>.json`,
