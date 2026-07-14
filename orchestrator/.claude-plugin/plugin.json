@@ -1,6 +1,6 @@
 {
   "name": "orchestrator",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told.",
   "author": {
     "name": "alex.borysenko"
@@ -9,7 +9,7 @@
     { "name": "tasks-manager", "version": "^0.4.1" },
     { "name": "architect-goggles", "version": "^0.5.0" },
     { "name": "product-designer-goggles", "version": "^0.1.0" },
-    { "name": "researcher", "version": "^0.5.0" },
+    { "name": "researcher", "version": "^0.6.0" },
     { "name": "worktrees", "version": "^0.2.0" },
     { "name": "observer", "version": "^0.1.0" },
     { "name": "project-executor", "version": "^0.4.0" }
