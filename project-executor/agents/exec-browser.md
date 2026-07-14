@@ -10,7 +10,11 @@ test; you decide only the mechanics of driving it.
 Required inputs (refuse with status: blocked if missing): flow description as
 numbered steps (or a browser.md routine block verbatim), base URL, auth
 strategy (the browser.md `## auth-strategy` block — storageState path,
-persistent-profile dir, api-login steps, or manual steps — or "none"), expected
+persistent-profile dir, api-login steps, or manual steps — or "none"), a
+**target-surface precondition** when the flow verifies a UI change — URL
+pattern + a DOM container selector that uniquely identifies the surface under
+test (e.g. "chips inside `cl-post-stream-copilot-card`, NOT inside
+`cl-multi-document-qa-answer`") — expected
 outcome per step where known, report dir, runid. Never devise your own auth: if
 the given strategy fails (expired state, login rejected), capture evidence,
 mark status blocked, and report — the caller owns re-login.
@@ -29,6 +33,11 @@ Procedure:
    failed, continue to next independent step if any, else stop.
 4. Dump full console log + failed network requests to `<report-dir>/logs/<runid>-browser.log`.
 5. Reply with Evidence Contract format; key_output = per-step one-liners:
+   **Surface assertion (gate before any pass):** when a target-surface
+   precondition was given, prove it in evidence — snapshot/`querySelector`
+   showing the expected element INSIDE the specified container on the specified
+   URL. Element found but in a different container/route ⇒ report
+   `status: wrong-surface`, never pass. A pass without surface proof is invalid.
    `step 3: FAIL — expected cart badge '2', saw '1' (screenshot step3)`.
    key_output ≤20 lines; total reply ≤50 lines.
 

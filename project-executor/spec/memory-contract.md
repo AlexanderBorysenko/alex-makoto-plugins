@@ -116,6 +116,13 @@ project, persist it in `browser.md` `## auth-strategy`, reuse it every run.
      `.claude-memory/executions/.browser-profile/`, user logs in manually once.
      For OAuth/MFA/third-party logins where cookies alone don't survive.
      Gotcha: locks the browser to one instance — parallel flows break.
+     **MCP caveat:** Playwright-MCP `browser_*` tools do NOT honor a custom
+     user-data-dir — the MCP server launches its own fixed profile
+     (`…/ms-playwright-mcp/mcp-chrome-*`) and hard-locks it across concurrent
+     sessions ("Browser is already in use"). `persistent-profile` is only real
+     when driving Playwright as a library (exec-runner script). Via MCP tools,
+     auth lives in the MCP's fixed profile: check for a profile lock before the
+     first dispatch, and record the reality in gotchas.md, not aspirationally here.
   4. `manual-handoff` — agent opens the browser, user logs in, agent continues.
      Fallback; record it so the next run proposes an upgrade.
 - Staleness: expired state ⇒ rerun the linked login routine, refresh the state

@@ -84,9 +84,19 @@ is wasted budget.
 
 ### full-test
 1. Ensure app up (start flow). 2. Seed per data.md if scenario needs it.
+2a. **Backend-readiness probe (before the FIRST `exec-browser` dispatch):** if
+   the scenario depends on a backend capability with a cheap probe (an endpoint
+   named in env.md/gotchas.md — e.g. a warm-data GET like
+   `/embeddings/<id>/single-summary-stream`), spawn `exec-runner` to curl it
+   first (seconds). Probe cold/404/5xx ⇒ verdict `blocked` with the probe as
+   evidence — never burn a browser flow discovering what a curl already proved.
 3. Execute scenario: CLI/API steps via `exec-runner`; UI steps via `exec-browser`
    using browser.md routines when they exist. 4. Each step → evidence + artifacts.
-5. Verdict pass/fail per the scenario's expected outcomes.
+5. Verdict pass/fail per the scenario's expected outcomes. When the scenario
+   verifies a UI change, the `exec-browser` dispatch MUST carry the
+   target-surface precondition (URL pattern + container selector) and the pass
+   verdict MUST cite its per-surface DOM confirmation — a screenshot of a
+   similar-looking element on another surface is a false PASS.
 
 ### Browser auth (gate before any UI step)
 
