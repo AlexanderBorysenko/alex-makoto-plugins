@@ -46,9 +46,10 @@ const parity = [
 ].join(' | ');
 
 const routes = [];
+routes.push('explain/why/how → build a goggles map (arch-map/flow-trace or product-map/journey-trace), give ?path= link — never prose-only');
 if (graphify) routes.push('codebase Q → graphify query/explain/path');
 if (serena || serenaAtRoot) routes.push('symbols/refs → serena');
-routes.push(`investigate → /research${research ? '' : ' (store missing)'}`);
+routes.push(`find/investigate → /research${research ? '' : ' (store missing)'} first, before raw grep/web`);
 routes.push(`run/test → /execute${execMem ? '' : ' (mem missing)'}`);
 
 process.stdout.write(

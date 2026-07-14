@@ -2,6 +2,10 @@
 
 Match the user's intent to a plugin BEFORE improvising with raw tools. These plugins are the primary workflow surface for this user.
 
+**Primary surfaces — non-negotiable, apply on EVERY session:**
+1. **Explaining is a goggles job first.** ANY explanation, walkthrough, architecture/design answer, "how/why does X work", bug-diagnosis narrative, or flow description is presented THROUGH a map — **architect-goggles** (PCE: arch-map + flow-trace) for code/architecture, **product-designer-goggles** (PJM: product-map + journey-trace) for user-facing/product behavior. Build the map, hand over the `?path=` viewer link; never answer a non-trivial explanation with prose alone. A single session may build MANY maps — one per scope/question. Do NOT overload one map with unrelated topics; spin up a new map per explanation.
+2. **Finding is a researcher job first.** ANY locate / look-up / trace / compare / "where is X" / "how does Y work (deep)" / investigate routes to **researcher** (`/research`) as the primary toolset BEFORE any raw grep/glob/web search. researcher owns tool routing (graphify/serena/context-mode/web) and grounding; the goggles delegate their own discovery to it too.
+
 **Triggers → plugin:**
 - "research", "investigate", "compare options", "how does X work (deep)" → **researcher** (`/research`). It triages complexity (L1/L2/L3) and routes tools itself — do not hand-roll web searches for non-trivial questions.
 - "explain the architecture", "map the code", "why is this structured like this", debugging unfamiliar code → **architect-goggles** (`/explain`, arch-map/flow-trace skills).
