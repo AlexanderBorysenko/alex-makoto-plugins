@@ -39,3 +39,15 @@ These plugins are the CORE workflow surface for this user. Do not avoid them bec
 5. **State-change transparency.** When a plugin auto-inits, print ONE line naming the action ("initialising project-executor memory at .claude-memory/executions/ — idempotent, <1s"). Do not bury the state change inside a chain of raw tool calls.
 
 **Failure mode this protocol prevents (seen 2026-07-13):** main thread noticed `.claude-memory/executions/` missing for project-executor, went ahead with 40 minutes of raw Bash/PowerShell/Docker, and only invoked /execute after the user explicitly demanded plugin init. Auto-init + hard-block eliminates that failure mode.
+
+## Defect claims: shape ≠ incidence (applies to EVERY bug/architecture conclusion, plugin or not)
+
+A code shape that PERMITS a failure is not evidence the failure HAPPENS. Whenever you (main thread or any agent) conclude "this is a bug / this is broken":
+
+1. **Two ratings, always**: *shape* (code path exists — cite `file:line`) and *incidence* (fires in reality — logs, DB rows, support tickets, executor repro, or the honest phrase "incidence: unverified"). "Confirmed" may only ever describe shape.
+2. **Counterfactual check before reporting**: "if this fired in prod, what traces would exist, and did anyone look?" Absent expected traces = evidence against; unexamined traces = say so.
+3. **Ask, don't assume frequency**: probability comes from real user behavior and the deploy context. Unknown action frequency ("do editors edit posts after publication?") → ask the user directly.
+4. **Relevance triage**: every finding is `explains-the-symptom | adjacent | orthogonal` to the ticket in focus. Orthogonal → one-line parking lot, never the main narrative.
+5. **Executor over rhetoric**: when a repro is cheap, run it (project-executor) instead of arguing statically.
+
+**Failure mode this section prevents (seen 2026-07-13, FN-1088):** agent labeled a bulletin mail-in-transaction shape "STILL BROKEN / confirmed" in maps and audit with zero production evidence; user had to challenge it, then dismissed six more theoretical edge cases the agent had presented without incidence assessment.

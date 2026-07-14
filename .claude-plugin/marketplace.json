@@ -4,12 +4,15 @@
     "name": "Alex Borysenko"
   },
   "description": "Alex's Claude Code plugins.",
-  "allowCrossMarketplaceDependenciesOn": ["claude-plugins-official", "context-mode"],
+  "allowCrossMarketplaceDependenciesOn": [
+    "claude-plugins-official",
+    "context-mode"
+  ],
   "plugins": [
     {
       "name": "orchestrator",
       "source": "./orchestrator",
-      "version": "0.1.7",
+      "version": "0.1.10",
       "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told."
     },
     {
@@ -21,19 +24,19 @@
     {
       "name": "architect-goggles",
       "source": "./architect-goggles",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "description": "Architect Goggles: a visual surface for looking at a codebase — agent-generated, task-scoped architecture maps (PCE) with structural and behavioral projections, black-box perimeter tracking, change review as diagram diffs, and a local viewer."
     },
     {
       "name": "product-designer-goggles",
       "source": "./product-designer-goggles",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "description": "Product maps (PJM): capability view + journey playback with screenshots, product impact diffs, HTML deck export."
     },
     {
       "name": "researcher",
       "source": "./researcher",
-      "version": "0.5.1",
+      "version": "0.6.0",
       "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory."
     },
     {
