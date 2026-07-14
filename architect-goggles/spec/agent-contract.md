@@ -26,6 +26,29 @@ Skills reference this file; violations make the map invalid.
 - On confirmation of a box: retype the node kind, retype/redirect its edges,
   and CHECK EXISTING FLOWS — a confirmed influence may inject arrows into them.
 
+### 2b. Defect claims: shape vs incidence (two axes)
+
+`resolution: confirmed` asserts the CODE SHAPE exists — it never asserts the
+defect FIRES in production. For any `bug_path` flow and any `advisory.notes[]`
+with `kind: risk` that describes a defect:
+
+- The description/note MUST state the incidence axis explicitly:
+  `incidence: observed` (log lines, DB rows, support tickets, or an
+  executor-verified repro — name the artifact) or `incidence: unverified —
+  static shape only`.
+- Verdict words (BROKEN, bug, fails, race) are FORBIDDEN in node `label`/
+  `summary` and flow `title` unless incidence is `observed`. Shape-only
+  findings phrase it as "permits X" / "no guard against X".
+- Counterfactual line required in `advisory` for each shape-only defect:
+  what traces WOULD exist if it fired (logs/alerts/tickets), and whether
+  anyone looked. Unexamined traces → say so; absent traces → evidence against.
+- Probability language must be grounded in the deploy context and real user
+  scenarios from the manifest or the human; unknown action frequency → put a
+  direct question in `advisory` (or ask the human live), never assume.
+- Relevance triage: each defect note names its relation to the task in focus —
+  `explains-the-symptom | adjacent | orthogonal`. Orthogonal ones get ONE line
+  in `advisory.notes`, no flows, no nodes beyond what the scan already forced.
+
 ## 3. Perimeter closure invariant
 
 Within `meta.analysis_scope`, every element the scan touched is in exactly one state:
