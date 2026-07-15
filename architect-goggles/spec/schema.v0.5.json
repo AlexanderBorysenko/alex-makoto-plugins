@@ -22,6 +22,7 @@
         "task": { "type": "string", "description": "Free-form task statement (bug id, feature request, onboarding question)." },
         "repo": { "type": "string" },
         "generated_at": { "type": "string", "format": "date-time" },
+        "session_language": { "type": "string", "description": "ISO code of the human's session language (e.g. 'uk', 'en'). All prose fields (summary, edge.label, title, task, tour md, advisory text) MUST be in this language (contract §10). Lint cross-checks: a Cyrillic-script declaration with zero Cyrillic prose is a hard error." },
         "commit_hash": { "type": "string", "description": "HEAD at generation time. Maps are EPHEMERAL: valid for this commit, not maintained afterwards." },
         "analysis_scope": {
           "type": "string",

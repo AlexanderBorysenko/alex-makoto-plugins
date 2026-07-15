@@ -298,6 +298,9 @@ const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:nul
 const NS="http://www.w3.org/2000/svg";
 function el(tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;return e;}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+// source_refs items should be "file:line" strings (schema). Coerce a stray {file,line}
+// object so a schema-violating map degrades to a usable ref instead of "[object Object]".
+function refStr(r){return (r&&typeof r==="object")?(r.file!=null?r.file+(r.line!=null?":"+r.line:""):JSON.stringify(r)):String(r);}
 // ISSUE PROTOCOL: parse shape:/incidence: lines out of a node's summary+evidence text.
 // Applies to ANY node that carries the fields, not just kind:"hypothesis".
 function issueBadges(n){
@@ -788,7 +791,7 @@ function selectNode(id){
       html+=`<div class="metrics">${hot.supporting_metrics.map(esc).join("<br>")}</div>`;
   }
   html+=`<h2>source_refs</h2>`;
-  (n.source_refs||[]).forEach(r=>{html+=`<div class="refitem" data-ref="${esc(r)}">${esc(r)}</div>`;});
+  (n.source_refs||[]).forEach(r=>{const s=refStr(r);html+=`<div class="refitem" data-ref="${esc(s)}">${esc(s)}</div>`;});
   if(state.diff&&mods.includes(id)){const d=DOC.diffs.find(d=>d.op==="modify_node"&&d.target===id);
     html+=`<h2>proposed change</h2><div class="diffcard mod"><span class="op">~ MODIFY</span><div class="rat">${esc(d.rationale)}</div></div>`;}
   if(state.diff&&addedNodeIds().includes(id)){const d=DOC.diffs.find(d=>d.op==="add_node"&&d.node.id===id);
@@ -835,7 +838,7 @@ function showEdgeCrossNav(e){
 function evidenceArtifact(e){
   const src=nodeById(e.from);
   if(!src) return {kind:"text",text:e.evidence||e.label||""};
-  if(src.source_refs&&src.source_refs.length) return {kind:"code",ref:src.source_refs[0]};
+  if(src.source_refs&&src.source_refs.length) return {kind:"code",ref:refStr(src.source_refs[0])};
   const txt=[src.summary,src.evidence].filter(Boolean).join("\n");
   const cs=DOC.code_snippets||{};
   const csKey=Object.keys(cs).find(k=>txt.includes(k));

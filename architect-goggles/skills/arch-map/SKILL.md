@@ -56,8 +56,12 @@ map from it (`<task-slug>.overview.json`). The overview is never built from code
 - Valid against schema v0.5 (run a JSON Schema validation if ajv is available).
 - `node spec/lint.mjs <map.json>` passes with no errors before you hand over the link.
 - `meta.source_root` set (live code preview depends on it).
+- `node.source_refs` are `"file:lineStart[-lineEnd]"` STRINGS, never `{file,line}` objects
+  (an object renders as `[object Object]` and breaks code navigation — lint rejects it).
 - Perimeter closure: nothing in scope without a resolution.
 - `scan_coverage` filled honestly (carried from researcher's finding — architect does not scan).
-- Language (contract §10): write all prose fields (`summary`, `evidence`, `edge.label`,
-  `meta.title/task`, advisory text…) in the human's session language; keep enums,
+- Language (contract §10): set `meta.session_language` to the human's session language code
+  (e.g. `uk`, `en`) AND write all prose fields (`summary`, `evidence`, `edge.label`,
+  `meta.title/task`, tour `md`, advisory text…) in that language; keep enums,
   `display_id`s, ids and code-symbol `label`s canonical. Viewer UI stays English.
+  Lint cross-checks the declared language against the prose script.

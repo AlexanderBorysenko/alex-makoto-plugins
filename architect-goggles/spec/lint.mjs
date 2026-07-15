@@ -149,11 +149,43 @@ export function lintMap(doc) {
   if (!doc.meta?.source_root && !doc.code_snippets)
     warnings.push("meta.source_root missing and no code_snippets — viewer cannot show code for source_refs ('Open in IDE' dead; contract §8)");
 
+  // Language adherence (contract §10): prose must be in the human's session language.
+  // Lint cannot infer that language, so it cross-checks a declared meta.session_language
+  // against the actual prose script. Absent → nudge to declare it; a Cyrillic-script
+  // declaration with zero Cyrillic in the prose is a hard mismatch (the exact failure:
+  // English map authored in a Ukrainian session).
+  const lang = (doc.meta?.session_language || "").toLowerCase().slice(0, 2);
+  if (!doc.meta?.session_language) {
+    warnings.push("meta.session_language absent — set it to the human's session language so prose-language adherence can be checked (contract §10)");
+  } else {
+    const prose = (doc.nodes || []).map((n) => n.summary || "")
+      .concat((doc.edges || []).map((e) => e.label || ""))
+      .concat([doc.meta?.title || "", doc.meta?.task || ""])
+      .concat((doc.tours || []).flatMap((t) => (t.steps || []).map((s) => s.md || "")))
+      .join(" ");
+    const CYRILLIC_LANGS = new Set(["uk", "ru", "be", "bg", "sr", "mk"]);
+    if (CYRILLIC_LANGS.has(lang) && prose.trim() && !/[Ѐ-ӿ]/.test(prose))
+      errors.push(`prose language: meta.session_language='${doc.meta.session_language}' but no Cyrillic found in any summary/label/tour text — prose must be in the session language (contract §10)`);
+  }
+
   // Perimeter closure + evidence (contract §2/§3).
   for (const n of doc.nodes || []) {
     if (!n.resolution) errors.push(`node ${ref(n.id)}: no resolution (perimeter closure violated)`);
     if ((n.resolution === "suspected" || n.resolution === "dismissed") && !n.evidence)
       errors.push(`node ${ref(n.id)}: ${n.resolution} without evidence (contract §2)`);
+    // source_refs items are strings "file:lineStart-lineEnd" (schema). An object
+    // {file,line} renders as [object Object] in the viewer and breaks showCode's
+    // regex — reject it at authoring time.
+    if (n.source_refs != null) {
+      if (!Array.isArray(n.source_refs))
+        errors.push(`node ${ref(n.id)}: source_refs must be an array of "file:line" strings`);
+      else n.source_refs.forEach((r, i) => {
+        if (typeof r !== "string")
+          errors.push(`node ${ref(n.id)}: source_refs[${i}] must be a "file:line" string, not ${Array.isArray(r) ? "array" : typeof r} (renders as [object Object] in the viewer)`);
+        else if (!/^.+:\d+(-\d+)?$/.test(r))
+          errors.push(`node ${ref(n.id)}: source_refs[${i}]='${r}' must match file:lineStart[-lineEnd]`);
+      });
+    }
   }
   for (const e of doc.edges || []) {
     if (!nodeIds.has(e.from)) errors.push(`edge ${e.display_id || e.id}: from '${e.from}' not a node`);

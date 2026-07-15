@@ -1,6 +1,6 @@
 {
   "name": "architect-goggles",
   "description": "Architect Goggles: a visual surface for looking at a codebase — agent-generated, task-scoped architecture maps (PCE) with structural (map) and behavioral (sequence) projections, black-box perimeter tracking, change review as diagram diffs, and a local viewer.",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "author": { "name": "Alex" }
 }

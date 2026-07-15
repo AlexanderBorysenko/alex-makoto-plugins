@@ -30,7 +30,7 @@
     {
       "name": "architect-goggles",
       "source": "./architect-goggles",
-      "version": "0.6.1",
+      "version": "0.7.0",
       "description": "Architect Goggles: a visual surface for looking at a codebase — agent-generated, task-scoped architecture maps (PCE) with structural and behavioral projections, black-box perimeter tracking, change review as diagram diffs, and a local viewer."
     },
     {
