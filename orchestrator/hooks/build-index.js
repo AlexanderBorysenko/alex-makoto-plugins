@@ -86,9 +86,10 @@ function buildTable() {
     const full = readJson(path.join(dir, '.claude-plugin', 'plugin.json')) || meta;
     const name = full.name || meta.name;
     if (!name || name === SELF) continue;
+    // Name + commands only — full descriptions already reach the model via each
+    // skill's description; repeating them here spent startup budget twice (S6).
     const commands = listCommands(dir);
-    const desc = (full.description || '').split(/[.—]/)[0].trim();
-    rows.push(`- **${name}**${commands.length ? ` (${commands.join(', ')})` : ''} — ${desc}`);
+    rows.push(`- **${name}**${commands.length ? ` (${commands.join(', ')})` : ''}`);
   }
   return rows;
 }
