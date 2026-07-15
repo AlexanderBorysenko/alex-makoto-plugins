@@ -50,10 +50,12 @@ bug ticket, "reproduce" → repro. State the classification in one line before a
 ## Orchestration rule (all flows)
 
 Main model = decisions, memory, conclusions, report. Mechanical work → subagents
-per `spec/evidence-contract.md`:
-- `exec-runner` (haiku) — run one command, watch readiness, distill.
-- `exec-browser` (sonnet) — drive one browser flow, screenshot, distill.
-- `exec-instrumenter` (sonnet) — inject/strip tagged log lines.
+per `spec/evidence-contract.md` (model tiers per the suite Model-tiering
+convention, `orchestrator/index-rules.md`):
+- `exec-runner` (T1 haiku) — run one command, watch readiness, distill.
+- `exec-browser` (T2 sonnet) — drive one browser flow, screenshot, distill.
+- `exec-instrumenter` (T2 sonnet) — inject/strip tagged log lines.
+This agent (`executor`) is T3-inherit — it orchestrates and reasons, never pinned down.
 Never paste raw logs into your own context; read raw artifact files only when
 evidence is insufficient.
 

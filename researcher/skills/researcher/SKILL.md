@@ -140,9 +140,10 @@ Boundary: never write into `.claude-memory/` — that store belongs to the tasks
 2. Ask whether `.claude-memory/research/` should be committed or gitignored; record the choice in config.md
    and add a `.gitignore` entry if gitignored.
 3. `graphify-out/graph.json` missing and graphify wanted: state that `graphify index .` costs API tokens
-   and can take a while; run it ONLY after explicit approval. **Model pinning for indexing:** dispatch any
-   indexing/extraction subagents on **haiku** by default (sonnet only if the user explicitly asks for higher
-   extraction quality). Never run indexing on the session model. After indexing completes, baseline:
+   and can take a while; run it ONLY after explicit approval. **Model pinning for indexing** (suite Model-tiering
+   convention, `orchestrator/index-rules.md` — T1): dispatch any indexing/extraction subagents on **haiku** by
+   default (sonnet only if the user explicitly asks for higher extraction quality — the ceiling escape hatch).
+   Never run indexing on the session model. After indexing completes, baseline:
    `git rev-parse HEAD > graphify-out/.researcher-head`.
 4. Serena not activated and wanted: offer `mcp__plugin_serena_serena__activate_project` / onboarding.
 5. Finish with the same status block format the SessionStart hook prints.

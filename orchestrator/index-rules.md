@@ -79,6 +79,22 @@ Suite-wide convention: when a skill step's output is a TYPED ARTIFACT, the step 
 
 Track the gates visibly: one todo per pending artifact when a skill runs multi-step. Skipping a gate requires saying so in chat with a reason (mirrors the Authority ladder rung 2).
 
+## Model tiering — mechanical work on small models, reasoning on the session model
+
+Suite-wide convention. Every subagent runs on the LEAST capable model that does its job correctly; the session (main-thread) model is reserved for orchestration and reasoning. Three tiers:
+
+- **T1 — `model: haiku` (deterministic mechanical).** Caller fully specifies the work; the agent exercises no judgment about scope or plan. Run one command + distill fixed-format output, inject/strip tagged log lines, index/extract for a graph, screenshot-distill to a fixed schema. Cheapest tier — use whenever the task is "do exactly this and report".
+- **T2 — `model: sonnet` (mechanical + bounded interpretation).** One task that needs local judgment a haiku would get wrong: drive a live UI and judge readiness/anomalies, make precise source edits where a wrong edit corrupts code. Bounded to a single flow; still does not own the plan.
+- **T3 — inherit the session model (orchestration + reasoning).** Decides what to spawn, synthesizes subagent evidence, forms hypotheses/verdicts/reports, talks to the user. Main-thread skill work and pipeline-facing orchestrator agents (e.g. project-executor `executor`). Leave `model:` UNSET so it inherits whatever the human is running.
+
+Rules:
+1. **Pin the tier in agent frontmatter.** Every `agents/*.md` sets `model:` for T1/T2. A MISSING `model:` means "intentionally T3-inherit" — allowed ONLY for orchestrator-role agents, never as an accident on a mechanical helper.
+2. **Never run mechanical work on the session model.** Deterministic bulk work (indexing, extraction, log injection, command running) done on the main thread is a tiering bug: offload it to a T1 subagent — raw-output bytes stay out of main context and the cheap model does the labor.
+3. **Never run reasoning on haiku.** Verdicts, synthesis, hypothesis elimination, user-facing reports stay on the session model.
+4. **Ceiling escape hatch:** bump a T1 agent to sonnet only on demonstrated quality loss, and say so (e.g. user asks for higher extraction quality). Do not silently upgrade.
+
+**Current bindings:** project-executor — `exec-runner` T1 `haiku`, `exec-browser` T2 `sonnet`, `exec-instrumenter` T2 `sonnet` (source edits carry corruption risk), `executor` T3-inherit. researcher — indexing/extraction subagents T1 `haiku` by default. New subagents anywhere in the suite MUST declare a tier per this ladder.
+
 ## ISSUE PROTOCOL — canonical, applies to EVERY bug/defect/architecture-risk conclusion (plugin or not)
 
 This is the suite's single source for defect epistemics. Plugins (researcher, architect-goggles, product-designer-goggles) reference it — do not restate it elsewhere; patch it here.

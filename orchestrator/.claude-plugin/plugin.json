@@ -1,6 +1,6 @@
 {
   "name": "orchestrator",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told.",
   "author": {
     "name": "alex.borysenko"
