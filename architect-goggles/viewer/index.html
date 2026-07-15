@@ -65,6 +65,25 @@
   .viewbody{flex:1;position:relative;border-top:1px solid var(--line);overflow:hidden;z-index:1}
   .viewpane{position:absolute;inset:0;display:none}
   .viewpane.active{display:block}
+  #paneCase{overflow-y:auto}
+  .case-timeline{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);overflow-x:auto}
+  .case-round{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:5px 9px;white-space:nowrap;background:var(--panel2);flex:none}
+  .case-badge{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);color:var(--dim);margin-left:auto;white-space:nowrap;flex:none}
+  .case-badge.over{color:var(--rem);border-color:var(--rem)}
+  .case-board{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:14px}
+  .case-col{border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+  .case-col h3{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:10px 12px;border-bottom:1px solid var(--line);margin:0}
+  .case-col .cards{padding:10px;display:flex;flex-direction:column;gap:8px}
+  .case-card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel);cursor:pointer}
+  .case-card:hover{border-color:var(--accent)}
+  .case-card .title{font-size:13px;font-weight:600;margin-bottom:4px}
+  .case-card.eliminated .title{text-decoration:line-through}
+  .case-card .sum{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:6px}
+  .case-card .reason{font-size:11.5px;color:var(--rem);border-left:2px solid var(--rem);padding-left:8px;margin-bottom:6px;line-height:1.5}
+  .case-chip{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:3px 7px;border-radius:5px;border:1px solid var(--line);margin:2px 4px 2px 0;cursor:pointer;color:var(--dim)}
+  .case-chip.ev{color:var(--add);border-color:var(--add)}
+  .case-chip.ref{color:var(--rem);border-color:var(--rem)}
+  .case-chip:hover{filter:brightness(1.3)}
   svg{display:block}
   #svgMap,#svgSeq{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
   #svgMap.panning,#svgSeq.panning{cursor:grabbing;user-select:none;-webkit-user-select:none}
@@ -206,6 +225,7 @@
     <div class="viewtabs">
       <button class="vtab active" id="tabMap">⬡ MAP · structure</button>
       <button class="vtab" id="tabSeq" disabled>⇅ SEQUENCE · flow</button>
+      <button class="vtab" id="tabCase" style="display:none">☰ CASE · investigation</button>
     </div>
     <div class="viewbody">
       <div class="viewpane active" id="paneMap">
@@ -219,6 +239,7 @@
         </svg>
       </div>
       <div class="viewpane" id="paneSeq"><svg id="svgSeq"><g id="worldSeq"></g></svg></div>
+      <div class="viewpane" id="paneCase"></div>
       <div class="playbar" id="playbar">
         <div class="stepline">
           <span class="seq" id="pbSeq"></span>
@@ -651,6 +672,44 @@ function renderSeq(){
   }
 }
 
+/* ============ CASE (hypothesis board + timeline) ============ */
+const CASE_COLS=[["open","suspected"],["eliminated","dismissed"],["confirmed","confirmed"]];
+function caseCard(h,eliminated){
+  const edges=DOC.edges.filter(e=>(e.kind==="evidenced_by"||e.kind==="refuted_by")&&(e.to===h.id||e.from===h.id));
+  const chips=edges.map(e=>{
+    const other=e.to===h.id?e.from:e.to,on=nodeById(other),isEv=e.kind==="evidenced_by";
+    return `<span class="case-chip ${isEv?"ev":"ref"}" data-target="${esc(other)}">${isEv?"⊕ evidenced by ":"⊖ refuted by "}${esc(on?on.label:other)}</span>`;
+  }).join("");
+  return `<div class="case-card${eliminated?" eliminated":""}" data-id="${esc(h.id)}">
+    <div class="title">${esc(h.label)}</div>
+    <div class="sum">${esc(h.summary||"")}</div>
+    ${eliminated&&h.evidence?`<div class="reason">${esc(h.evidence)}</div>`:""}
+    <div class="chips">${chips}</div>
+  </div>`;
+}
+function renderCase(){
+  const pane=document.getElementById("paneCase");
+  const hyps=DOC.nodes.filter(n=>n.kind==="hypothesis");
+  if(!hyps.length){pane.innerHTML="";return;}
+  let html="";
+  const rounds=DOC.meta&&DOC.meta.case_rounds;
+  if(rounds&&rounds.length){
+    const max=DOC.meta.case_rounds_max,over=max!=null&&rounds.length>=max;
+    const badge=max!=null?`round ${rounds.length}/${max}`:`round ${rounds.length}`;
+    html+=`<div class="case-timeline">`+
+      rounds.map(r=>{const t=`R${r.round}: ${r.action} → ${r.outcome}`;return `<div class="case-round" title="${esc(t)}">${esc(t)}</div>`;}).join("")+
+      `<div class="case-badge${over?" over":""}">${esc(badge)}</div></div>`;
+  }
+  html+=`<div class="case-board">`+CASE_COLS.map(([label,res])=>{
+    const items=hyps.filter(h=>h.resolution===res);
+    return `<div class="case-col"><h3>${label} (${items.length})</h3><div class="cards">`+
+      items.map(h=>caseCard(h,res==="dismissed")).join("")+`</div></div>`;
+  }).join("")+`</div>`;
+  pane.innerHTML=html;
+  pane.querySelectorAll(".case-card").forEach(c=>c.addEventListener("click",()=>selectNode(c.dataset.id)));
+  pane.querySelectorAll(".case-chip").forEach(c=>c.addEventListener("click",ev=>{ev.stopPropagation();focusMapNode(c.dataset.target);}));
+}
+
 /* ============ inspector / cross-nav ============ */
 const rp=document.getElementById("rightpanel");
 function selectNode(id){
@@ -912,11 +971,14 @@ function setView(v){
   state.view=v;
   document.getElementById("tabMap").classList.toggle("active",v==="map");
   document.getElementById("tabSeq").classList.toggle("active",v==="seq");
+  document.getElementById("tabCase").classList.toggle("active",v==="case");
   document.getElementById("paneMap").classList.toggle("active",v==="map");
   document.getElementById("paneSeq").classList.toggle("active",v==="seq");
+  document.getElementById("paneCase").classList.toggle("active",v==="case");
 }
 document.getElementById("tabMap").addEventListener("click",()=>{setView("map");renderAll();});
 document.getElementById("tabSeq").addEventListener("click",()=>{if(state.flow){setView("seq");renderAll();}});
+document.getElementById("tabCase").addEventListener("click",()=>{exitTour();setView("case");renderCase();});
 
 /* ============ toggles ============ */
 const dt=document.getElementById("diffToggle"),ht=document.getElementById("heatToggle");
@@ -1068,6 +1130,7 @@ function init(){
     "display_id (N2, E3, BB1) — shared coordinate system with the agent: \"explain E3\", \"investigate BB1\".<br>"+
     (DOC.meta.scan_coverage?("scanned: "+(DOC.meta.scan_coverage.scanned_sources||[]).join(", ")+"<br>not scanned: "+(DOC.meta.scan_coverage.not_scanned||[]).join(", ")):"");
   if(DOC.flows&&DOC.flows.length){state.flow=DOC.flows[0];document.getElementById("tabSeq").disabled=false;}
+  document.getElementById("tabCase").style.display=DOC.nodes.some(n=>n.kind==="hypothesis")?"":"none";
   renderFlows();renderTours();renderBBs();renderAll();
 }
 boot();
