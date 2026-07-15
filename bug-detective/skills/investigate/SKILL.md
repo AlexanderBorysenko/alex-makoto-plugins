@@ -17,10 +17,21 @@ Auto-init `.claude-memory/cases/` if missing (idempotent, print one init line �
 readiness protocol). If researcher or project-executor is unusable, STOP and surface
 options incl. "waive for this question". If a case slug for this symptom exists, resume it.
 
+**Phase gate (anti-drift):** the moment TRIAGE opens a case, create one todo per
+remaining phase (INTAKE transcription, HYPOTHESIZE, ROUND LOOP, EXIT, HANDOFF).
+A phase todo may be completed ONLY when its artifacts exist — case file from
+`templates/case.md` at `.claude-memory/cases/<slug>.md`, a linted case map, the
+viewer link posted. Skipping any phase or artifact requires saying so in chat
+with a reason; silent drift into ad-hoc files/prose is a protocol violation.
+
 ## 1. INTAKE
 
 Record the symptom VERBATIM (destined for the case title + Symptom section). Ask for repro steps,
-logs, screenshots in ONE batched AskUserQuestion. Hold the symptom text and answers in
+logs, screenshots in ONE batched AskUserQuestion. The SAME batch MUST include the
+product-intent pair: (1) what behavior is EXPECTED here, and (2) why is the current
+behavior considered wrong — and by whom (user observation, product owner, or guess).
+A symptom is only a delta against an expectation; without the expectation on record
+the investigation has no target. Hold the symptom text and answers in
 working memory — do not open the case file yet, triage first. Transcribe them into the
 case file only if/when TRIAGE below opens one.
 
@@ -66,6 +77,13 @@ d. Regenerate the case map from the case file; remind the user the board refresh
   suspect + eliminated list + parking lot + recommended fix), set status: verdict, and
   add a VERDICT TOUR to the case map (MANDATORY — walk symptom → prime suspect →
   evidence; agent-contract §12).
+- **Intentional-design verdict**: when provenance (git blame / origin ticket) shows the
+  suspect code shape was introduced DELIBERATELY, the product model outranks the code.
+  The dossier's "recommended fix" is then a FORMULATED PRODUCT QUESTION — name the
+  domain entity whose intended model is ambiguous and the competing models — addressed
+  to the product owner/senior. Do NOT enumerate code-fix options until the intent is
+  confirmed; a fix menu presented first anchors the user on implementation and can
+  break product logic that is the senior card.
 - Budget hit first: write the Interim dossier (ranked suspects + "what I'd test next"),
   set status: interim, STOP. The user decides: continue (raise rounds_max) or close.
   NEVER run a round past budget silently.
