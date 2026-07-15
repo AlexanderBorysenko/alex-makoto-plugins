@@ -5,7 +5,7 @@ the scope you work on in product terms — purpose, user journeys, business
 "why", and the full product impact of a change — with an interactive viewer
 and shareable screenshot decks.
 
-One PJM document (`spec/schema.v0.1.json`, protocol `pjm-0.1`) → two views:
+One PJM document (`spec/schema.v0.2.json`, protocol `pjm-0.1`/`pjm-0.2`) → two views:
 - **CAPABILITY** — structure: capabilities, screens, roles, business rules,
   entities; `uses / affects / governed_by / navigates_to` relations; black
   boxes (`resolution: suspected`) at the perimeter, human-routed.
@@ -28,8 +28,8 @@ placeholders and everything else still works. Decks are self-contained HTML
 
 ## Layout
 
-    spec/schema.v0.1.json   PJM document schema (structural fork of PCE v0.4)
-    spec/agent-contract.md  generation law (§1-§10)
+    spec/schema.v0.2.json   PJM document schema (structural fork of PCE v0.5)
+    spec/agent-contract.md  generation law (§1-§12)
     spec/lint.mjs           schema + closure + journey-integrity validation
     skills/                 product-map, journey-trace, product-impact, present
     commands/product.md     /product orchestration

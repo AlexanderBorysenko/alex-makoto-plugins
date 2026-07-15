@@ -9,11 +9,15 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
 
+// Epistemic edges (evidenced_by/refuted_by) are excluded from metrics counting —
+// same rule as PCE's CONFIRMED_EDGE_KINDS filter.
+const METRICS_EDGE_KINDS = new Set(["uses", "affects", "governed_by", "navigates_to", "suspected_influence"]);
+
 /* ---------- deterministic recompute ---------- */
 
 export function recomputeMetrics(doc) {
   const nodes = doc.nodes || [];
-  const edges = doc.edges || [];
+  const edges = (doc.edges || []).filter((e) => METRICS_EDGE_KINDS.has(e.kind));
   const byId = new Map(nodes.map((n) => [n.id, n]));
 
   const fanIn = new Map(), fanOut = new Map();
@@ -80,7 +84,7 @@ export function lintMap(doc, mapDir = process.cwd()) {
   const displayById = new Map((doc.nodes || []).map((n) => [n.id, n.display_id]));
   const ref = (id) => `${displayById.get(id) || "?"}/${id}`;
 
-  if (doc.protocol_version !== "pjm-0.1") errors.push("protocol_version must be 'pjm-0.1'");
+  if (!["pjm-0.1", "pjm-0.2"].includes(doc.protocol_version)) errors.push("protocol_version must be 'pjm-0.1' or 'pjm-0.2'");
   if (!doc.meta?.commit_hash) errors.push("meta.commit_hash missing (maps are ephemeral — stamp them)");
   if (!doc.meta?.source_root && !doc.code_snippets)
     warnings.push("meta.source_root missing and no code_snippets — viewer cannot show code for source_refs ('Open in IDE' dead)");
@@ -91,7 +95,7 @@ export function lintMap(doc, mapDir = process.cwd()) {
     if ((n.resolution === "suspected" || n.resolution === "dismissed") && !n.evidence)
       errors.push(`node ${ref(n.id)}: ${n.resolution} without evidence`);
   }
-  const EDGE_KINDS = new Set(["uses", "affects", "governed_by", "navigates_to", "suspected_influence"]);
+  const EDGE_KINDS = new Set(["uses", "affects", "governed_by", "navigates_to", "suspected_influence", "evidenced_by", "refuted_by"]);
   for (const e of doc.edges || []) {
     if (!nodeIds.has(e.from)) errors.push(`edge ${e.display_id || e.id}: from '${e.from}' not a node`);
     if (!nodeIds.has(e.to)) errors.push(`edge ${e.display_id || e.id}: to '${e.to}' not a node`);
@@ -128,6 +132,29 @@ export function lintMap(doc, mapDir = process.cwd()) {
 
   // Journey integrity: screen refs exist and are kind='screen'; screenshots exist on disk.
   errors.push(...checkJourneys(doc, mapDir, warnings));
+
+  // tours: ref integrity
+  const flowIds = new Set((doc.flows || []).map(f => f.id));
+  const tourIds = new Set();
+  for (const t of doc.tours || []) {
+    if (!t.id || !t.title || !Array.isArray(t.steps) || t.steps.length === 0) {
+      errors.push(`tour ${t.id || "?"}: requires id, title and non-empty steps`);
+      continue;
+    }
+    if (tourIds.has(t.id)) errors.push(`tour ${t.id}: duplicate tour id`);
+    tourIds.add(t.id);
+    for (const s of t.steps) {
+      for (const ref_node_edge of s.focus || []) {
+        if (!nodeIds.has(ref_node_edge) && !edgeIds.has(ref_node_edge)) {
+          errors.push(`tour ${t.id}: step ${s.seq}: focus ref '${ref_node_edge}' is neither a node nor an edge id`);
+        }
+      }
+      if (s.flow_ref && !flowIds.has(s.flow_ref)) {
+        errors.push(`tour ${t.id}: step ${s.seq}: unknown flow_ref '${s.flow_ref}'`);
+      }
+      if (!s.md) errors.push(`tour ${t.id}: step ${s.seq}: missing md`);
+    }
+  }
 
   // Deterministic metrics: LLM-written numbers are hard errors.
   const metrics = recomputeMetrics(doc);

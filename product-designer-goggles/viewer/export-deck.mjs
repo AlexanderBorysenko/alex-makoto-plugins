@@ -12,7 +12,7 @@ const mapPath = path.resolve(mapFile);
 const mapDir = path.dirname(mapPath);
 const outDir = outIdx >= 0 ? path.resolve(args[outIdx + 1]) : mapDir;
 const doc = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
-if (doc.protocol_version !== 'pjm-0.1') { console.error(`not a PJM v0.1 document: ${doc.protocol_version}`); process.exit(1); }
+if (!['pjm-0.1', 'pjm-0.2'].includes(doc.protocol_version)) { console.error(`not a PJM document: ${doc.protocol_version}`); process.exit(1); }
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nodeById = new Map((doc.nodes ?? []).map(n => [n.id, n]));

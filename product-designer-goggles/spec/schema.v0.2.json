@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "pjm/schema/v0.1",
+  "$id": "pjm/schema/v0.2",
   "title": "PJM Map Document",
   "description": "Task-scoped product map: one model, rendered as CAPABILITY (structure) and JOURNEY (behavior) projections.",
   "type": "object",
   "required": ["protocol_version", "meta", "nodes", "edges", "flows"],
   "additionalProperties": false,
   "properties": {
-    "protocol_version": { "const": "pjm-0.1" },
+    "protocol_version": { "enum": ["pjm-0.1", "pjm-0.2"] },
 
     "meta": {
       "type": "object",
@@ -111,6 +111,35 @@
           "hl": { "type": "array", "items": { "type": "integer" } }
         }
       }
+    },
+
+    "tours": {
+      "type": "array",
+      "description": "Guided walkthroughs: ordered, map-anchored explanation steps",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "steps"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["seq", "focus", "md"],
+              "additionalProperties": false,
+              "properties": {
+                "seq": { "type": "integer" },
+                "focus": { "type": "array", "items": { "type": "string" }, "description": "node and/or edge ids highlighted at this step" },
+                "md": { "type": "string", "description": "one paragraph, rendered as markdown in the viewer side panel" },
+                "flow_ref": { "type": "string", "description": "optional flow id to auto-play at this step" }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -168,8 +197,8 @@
         "from": { "type": "string" },
         "to": { "type": "string" },
         "kind": {
-          "enum": ["uses", "affects", "governed_by", "navigates_to", "suspected_influence"],
-          "description": "Product-scope relations. suspected_influence: dashed '?' edge from/to a black box."
+          "enum": ["uses", "affects", "governed_by", "navigates_to", "suspected_influence", "evidenced_by", "refuted_by"],
+          "description": "Product-scope relations. suspected_influence: dashed '?' edge from/to a black box. evidenced_by/refuted_by: epistemic edges from an evidence artifact or code node to a hypothesis node — excluded from metrics like suspected_influence."
         },
         "label": { "type": "string" },
         "evidence": { "type": "string", "description": "Required when kind=suspected_influence." }

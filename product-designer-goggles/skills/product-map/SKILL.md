@@ -6,7 +6,7 @@ description: Build a task-scoped PJM capability map — capabilities, screens, r
 # product-map
 
 Produces `.claude-memory/product/maps/<task-slug>.json` conforming to
-`spec/schema.v0.1.json`. Obey `spec/agent-contract.md` (all §§; especially
+`spec/schema.v0.2.json`. Obey `spec/agent-contract.md` (all §§; especially
 §2 knowledge priority, §3 unsourced-why, §5 perimeter gate, §11 language).
 
 ## Procedure

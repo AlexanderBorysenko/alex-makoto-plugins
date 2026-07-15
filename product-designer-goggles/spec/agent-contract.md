@@ -1,6 +1,6 @@
 # PJM Agent Contract (v0.1)
 
-Law for agents generating PJM documents. Schema: `spec/schema.v0.1.json`;
+Law for agents generating PJM documents. Schema: `spec/schema.v0.2.json`;
 validation: `node spec/lint.mjs <map.json>` — a map that fails lint is never
 opened in the viewer or exported.
 
@@ -103,3 +103,12 @@ means product-vs-implementation REGISTER ("shopper loses saved promo", not "Prom
 signature changes") — it is ORTHOGONAL to natural language. Write the product register IN the
 session's natural language: a Ukrainian session yields Ukrainian product-register prose, not
 English. The viewer UI (buttons, tabs, hints) is always English and is NOT part of the map.
+
+## 12. Tours (guided walkthroughs)
+
+A tour turns an explanation into ordered, map-anchored steps: each step highlights
+`focus` nodes/edges and shows one markdown paragraph. Every `explain`-intent map
+SHOULD ship at least one tour. Maps built for `present` intent SHOULD anchor the
+deck narrative in a tour. Every `focus` ref must be an existing node or edge id;
+`flow_ref` must name an existing flow (lint enforces both). Keep steps to one
+paragraph each — the tour is the reading port, not a second report.

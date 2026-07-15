@@ -1,5 +1,5 @@
 {
-  "protocol_version": "pjm-0.1",
+  "protocol_version": "pjm-0.2",
   "meta": {
     "title": "Checkout — promo code handling",
     "intent": "explain",
@@ -44,5 +44,12 @@
     "notes": [ { "node": "cap_promo", "kind": "business", "note": "Rounding of percentage discounts is where the reported bug lives." } ],
     "open_questions": [ "BB1: does discount change loyalty accrual?" ],
     "residual_uncertainty": "Marketing attribution of promo usage not scanned."
-  }
+  },
+  "tours": [
+    { "id": "t_apply_promo", "title": "How a promo code gets applied", "steps": [
+      { "seq": 1, "focus": ["role_shopper", "scr_cart", "e_shopper_cart"], "md": "The **Shopper** opens the **Cart** and enters a promo code (`PE1`)." },
+      { "seq": 2, "focus": ["scr_cart", "cap_promo", "rule_single_promo", "e_cart_promo", "e_promo_rule"], "md": "The Cart asks the **Promo codes** capability to validate and price the discount. The `governed_by` edge to **BR1** enforces the *one promo per order* rule." },
+      { "seq": 3, "focus": ["cap_promo", "scr_checkout", "e_cart_checkout"], "md": "Shopper proceeds to **Checkout**, where the discounted total is shown before payment — see the full step-by-step in the linked journey.", "flow_ref": "j_apply_promo" }
+    ]}
+  ]
 }
