@@ -144,6 +144,9 @@
       ]
     }
   ],
+  "advisory": {
+    "summary": "Verdict: charge() (src/payment/charge.js:42) has no idempotency check, so the retry wrapper's second attempt after a timeout is not deduped — both attempts succeed and order #4471 is charged twice. The duplicate-webhook theory (H2) is dismissed (provider dedupe key confirms a single delivery); the race-condition framing (H1) is subsumed by the confirmed missing-check root cause (H3). Recommended fix: add an idempotency key to the charge() call path."
+  },
   "tours": [
     {
       "id": "t1",

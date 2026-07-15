@@ -99,6 +99,9 @@
   .node.dim{opacity:.28}
   .node.suspected rect.body{stroke:var(--faint);stroke-dasharray:4 4;fill:#151a26}
   .node.suspected text.label{fill:var(--dim);font-style:italic}
+  .node.dismissed-hyp{opacity:.55}
+  .node.dismissed-hyp rect.body{stroke-dasharray:4 4}
+  .node.dismissed-hyp text.label{text-decoration:line-through}
   .node.issue-observed rect.body{stroke:var(--rem);stroke-width:2;stroke-dasharray:none}
   .node.issue-unverified rect.body{stroke:var(--faint);stroke-dasharray:4 4}
   .node text.label{fill:var(--text);font-size:13px;font-weight:600}
@@ -395,7 +398,9 @@ function resolveEndpoints(e){
   return pairs.filter(p=>p[0]&&p[1]);
 }
 function visibleNodes(){
-  let ns=DOC.nodes.filter(n=>!isExpanded(n.id)&&n.resolution!=="dismissed");
+  // Dismissed hypothesis (case) nodes stay on the MAP, muted, so the verdict tour can
+  // still highlight eliminated hypotheses. Other dismissed (black-box) nodes stay hidden.
+  let ns=DOC.nodes.filter(n=>!isExpanded(n.id)&&(n.resolution!=="dismissed"||n.kind==="hypothesis"));
   if(state.diff&&DOC.diffs)ns=ns.concat(DOC.diffs.filter(d=>d.op==="add_node").map(d=>d.node));
   return ns;
 }
@@ -475,7 +480,9 @@ function computeMapLayout(){
   for(const pid in state.expanded){if(state.expanded[pid])allEdges.push(...(DOC.expanded_children[pid].edges||[]));}
   allEdges.forEach(e=>{
     const fromN=nodeById(e.from),toN=nodeById(e.to);
-    if((fromN&&fromN.resolution==="dismissed")||(toN&&toN.resolution==="dismissed"))return;
+    // Dismissed hypothesis nodes are still drawn (see visibleNodes), so edges touching
+    // them should draw too; only skip edges to still-hidden dismissed black-box nodes.
+    if((fromN&&fromN.resolution==="dismissed"&&fromN.kind!=="hypothesis")||(toN&&toN.resolution==="dismissed"&&toN.kind!=="hypothesis"))return;
     resolveEndpoints(e).forEach(([a,b],idx)=>{
       if(!a||!b||a.id===b.id||!g.hasNode(a.id)||!g.hasNode(b.id))return;
       const name=e.id+"#"+idx;g.setEdge(a.id,b.id,{},name);
@@ -491,11 +498,12 @@ function drawNode(n,g,ctx){
   const b=boxFor(n),w=nd.width,h=nd.height,x=nd.x-w/2,y=nd.y-h/2;
   const isLit=ctx.litNodes.has(n.id),isSel=state.selected===n.id;
   const isAdd=ctx.addsN.includes(n.id),isMod=ctx.mods.includes(n.id),isSusp=n.resolution==="suspected";
+  const isDismissedHyp=n.kind==="hypothesis"&&n.resolution==="dismissed";
   const hasTS=!!(n.metrics&&typeof n.metrics.tangle_score==="number");
   const isHot=state.heat&&!isSusp&&ctx.hotspots&&(ctx.hotspots.has(n.display_id)||ctx.hotspots.has(n.id));
   const badges=issueBadges(n);
   const issCls=badges?(badges.observed?" issue-observed":badges.unverified?" issue-unverified":""):"";
-  const grp=el("g",{class:"node"+(isSusp?" suspected":"")+issCls+(isLit?" lit":"")+(ctx.dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${x},${y})`});
+  const grp=el("g",{class:"node"+(isSusp?" suspected":"")+(isDismissedHyp?" dismissed-hyp":"")+issCls+(isLit?" lit":"")+(ctx.dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${x},${y})`});
   const body=el("rect",{class:"body",width:w,height:h,rx:9});
   if(state.heat&&hasTS&&!isSusp)body.setAttribute("style",`stroke:${heatColor(n.metrics.tangle_score)};stroke-width:2.4`);
   else if(isHot)body.setAttribute("style","stroke:var(--rem);stroke-width:2.4");
@@ -733,7 +741,7 @@ function renderCase(){
   let html="";
   const rounds=DOC.meta&&DOC.meta.case_rounds;
   if(rounds&&rounds.length){
-    const max=DOC.meta.case_rounds_max,over=max!=null&&rounds.length>=max;
+    const max=DOC.meta.case_rounds_max,over=max!=null&&rounds.length>max;
     const badge=max!=null?`round ${rounds.length}/${max}`:`round ${rounds.length}`;
     html+=`<div class="case-timeline">`+
       rounds.map(r=>{const t=`R${r.round}: ${r.action} → ${r.outcome}`;return `<div class="case-round" title="${esc(t)}">${esc(t)}</div>`;}).join("")+
