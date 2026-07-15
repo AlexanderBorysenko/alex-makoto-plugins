@@ -44,7 +44,11 @@ Artifact gate (orchestrator index-rules): the deliverable is a LINTED map + view
 - No node without resolution; no suspected/dismissed without evidence.
 - Business "why" only with a source (§3) — else advisory.open_questions.
 - Do not build journeys here — that is journey-trace.
-- Language (§11): ALL prose (`meta.*`, `summary`, `business_why`, `evidence`, `relevance`,
-  advisory…) in the human's session language; enums, `display_id`s, ids and code/route `label`s
+- Language (§11): set `meta.session_language` to the human's session language code (e.g. `uk`,
+  `en`) AND write ALL prose (`meta.*`, `summary`, `business_why`, `evidence`, `relevance`,
+  tour `md`, advisory…) in that language; enums, `display_id`s, ids and code/route `label`s
   stay English. "Product language" means register (product-vs-implementation), NOT English —
   write the product register IN the session language (Ukrainian session → Ukrainian prose).
+  Lint cross-checks the declared language against the prose script.
+- `node.source_refs` are `"file:lineStart[-lineEnd]"` STRINGS, never `{file,line}` objects
+  (an object renders as `[object Object]` and breaks code navigation — lint rejects it).
