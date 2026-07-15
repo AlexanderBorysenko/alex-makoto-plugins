@@ -978,7 +978,7 @@ function setView(v){
 }
 document.getElementById("tabMap").addEventListener("click",()=>{setView("map");renderAll();});
 document.getElementById("tabSeq").addEventListener("click",()=>{if(state.flow){setView("seq");renderAll();}});
-document.getElementById("tabCase").addEventListener("click",()=>{exitTour();setView("case");renderCase();});
+document.getElementById("tabCase").addEventListener("click",()=>{exitTour();stopAuto();state.step=-1;hidePlaybar();setView("case");renderCase();});
 
 /* ============ toggles ============ */
 const dt=document.getElementById("diffToggle"),ht=document.getElementById("heatToggle");
