@@ -31,7 +31,7 @@ Claude Code plugin: stateful, budgeted bug-diagnosis controller.
 
 ## Planned (Phase 2)
 
-**Click-to-answer:** User answers the detective's questions directly in the case board viewer via a `serve.mjs` POST endpoint. Not yet built; flow reserved for future implementation.
+**Click-to-answer:** User answers the case's open Questions directly in the case board viewer via a `serve.mjs` POST endpoint. Not yet built; flow reserved for future implementation.
 
 ## Layout
 
@@ -39,7 +39,7 @@ Claude Code plugin: stateful, budgeted bug-diagnosis controller.
 .claude-plugin/plugin.json        plugin manifest
 spec/case-contract.md             case file structure + rules (binding for Task 5)
 templates/case.md                 scaffold instantiated at case open
-README.md                          this file
+README.md                         this file
 skills/investigate/SKILL.md       workflow (Task 5)
 commands/investigate.md           /investigate command (Task 5)
 ```
