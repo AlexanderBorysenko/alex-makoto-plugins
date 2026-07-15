@@ -26,7 +26,7 @@ Claude Code plugin: stateful, budgeted bug-diagnosis controller.
 
 - **researcher** (`^0.6.0`): L1 triage, tool routing for evidence gathering, grounding of claims.
 - **project-executor** (`^0.5.0`): bug reproduction, test runs, instrumented logs, browser flows.
-- **architect-goggles** (`^0.5.0`): codebase structure for hypothesis generation, impact assessment.
+- **architect-goggles** (`^0.6.0`): codebase structure for hypothesis generation, impact assessment.
 - **tasks-manager** (optional integration): case linked into the doc index when present; case slug becomes a task journal anchor.
 
 ## Planned (Phase 2)

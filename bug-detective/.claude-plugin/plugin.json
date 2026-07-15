@@ -8,6 +8,6 @@
   "dependencies": [
     { "name": "researcher", "version": "^0.6.0" },
     { "name": "project-executor", "version": "^0.5.0" },
-    { "name": "architect-goggles", "version": "^0.5.0" }
+    { "name": "architect-goggles", "version": "^0.6.0" }
   ]
 }
