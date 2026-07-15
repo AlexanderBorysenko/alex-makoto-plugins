@@ -780,6 +780,7 @@ function renderFlows(){
     const kindLabel={happy_path:"happy path",failure_path:"failure handling (by design)",bug_path:"bug reproduction",edge_case:"edge case",proposed:"proposed"}[f.kind]||f.kind;
     d.innerHTML=`<div class="name">${esc(f.title)}</div><div class="kindtag">${kindLabel}${f.verified_by?" · "+f.verified_by:""}</div>`;
     d.addEventListener("click",()=>{
+      exitTour();                        // picking a flow leaves any active tour
       state.flow=f;state.step=-1;stopAuto();hidePlaybar();
       document.getElementById("tabSeq").disabled=false;
       setView("seq");renderFlows();renderAll();
@@ -789,7 +790,7 @@ function renderFlows(){
   if(state.flow){
     flowDetail.innerHTML=`<div class="flowdesc">${esc(state.flow.description||"")}</div>
       <div class="btnrow"><button id="btnPlay" class="primary">▶ playback</button></div>`;
-    document.getElementById("btnPlay").addEventListener("click",()=>{state.step=0;syncPlaybar();renderAll();});
+    document.getElementById("btnPlay").addEventListener("click",()=>{exitTour();state.step=0;syncPlaybar();renderAll();});
   } else flowDetail.innerHTML="";
 }
 function renderBBs(){
@@ -842,13 +843,23 @@ function renderTours(){
     list.appendChild(d);
   });
 }
+let preTour=null; // {flow,seqDisabled} snapshot taken when a tour starts, restored on ✕ close
 function startTour(t){
+  if(!state.tour)preTour={flow:state.flow,seqDisabled:document.getElementById("tabSeq").disabled};
   stopAuto();state.step=-1;hidePlaybar();
   state.tour=t;state.tourStep=0;
   setView("map");
   renderTours();
   tourbar.classList.add("show");
   applyTourStep();
+}
+// dismiss tour UI only (no flow restore) — used when the user actively picks a flow mid-tour
+function exitTour(){
+  if(!state.tour)return;
+  state.tour=null;state.tourStep=-1;
+  tourbar.classList.remove("show");
+  renderTours();
+  rp.innerHTML=`<h2>Inspector</h2><div class="empty">Click a node / lifeline / edge. Black boxes are in the left sidebar.</div>`;
 }
 function applyTourStep(){
   const t=state.tour,st=t.steps[state.tourStep];
@@ -862,11 +873,14 @@ function applyTourStep(){
   rp.innerHTML=`<h2>Tour · ${esc(t.title)}</h2><div id="tourMd">${mdToHtml(st.md)}</div>`;
   renderAll();
 }
-function closeTour(){
-  state.tour=null;state.tourStep=-1;
-  tourbar.classList.remove("show");
+function closeTour(){ // ✕ button: dismiss AND restore pre-tour flow selection
+  if(!state.tour)return;
+  exitTour();
+  if(preTour){state.flow=preTour.flow;document.getElementById("tabSeq").disabled=preTour.seqDisabled;preTour=null;}
+  if(!state.flow&&state.view==="seq")setView("map");
+  renderFlows();
   if(state.selected)selectNode(state.selected);
-  else{rp.innerHTML=`<h2>Inspector</h2><div class="empty">Click a node / lifeline / edge. Black boxes are in the left sidebar.</div>`;renderAll();}
+  else renderAll();
 }
 document.getElementById("tourNext").addEventListener("click",()=>{if(state.tour&&state.tourStep<state.tour.steps.length-1){state.tourStep++;applyTourStep();}});
 document.getElementById("tourPrev").addEventListener("click",()=>{if(state.tour&&state.tourStep>0){state.tourStep--;applyTourStep();}});
