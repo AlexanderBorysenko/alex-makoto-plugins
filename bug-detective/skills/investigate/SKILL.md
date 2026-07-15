@@ -19,8 +19,10 @@ options incl. "waive for this question". If a case slug for this symptom exists,
 
 ## 1. INTAKE
 
-Record the symptom VERBATIM in the case title + Symptom section. Ask for repro steps,
-logs, screenshots in ONE batched AskUserQuestion. Do not open the case file yet — triage first.
+Record the symptom VERBATIM (destined for the case title + Symptom section). Ask for repro steps,
+logs, screenshots in ONE batched AskUserQuestion. Hold the symptom text and answers in
+working memory — do not open the case file yet, triage first. Transcribe them into the
+case file only if/when TRIAGE below opens one.
 
 ## 2. TRIAGE — L1 fast path
 
@@ -41,7 +43,10 @@ entry with an ISSUE PROTOCOL block. ALWAYS include at least one
 ## 4. ROUND LOOP  (while open hypotheses AND rounds_used < rounds_max)
 
 a. Pick the CHEAPEST DISCRIMINATING TEST — the action that best splits the open
-   hypotheses per unit cost. Cost ladder (cheapest first):
+   hypotheses per unit cost. Round 1 first checks whether the INTAKE answers already
+   discriminate between hypotheses (reuse as evidence, cost: free) before issuing a
+   fresh AskUserQuestion — never re-ask what intake already answered. Cost ladder
+   (cheapest first):
    1. ask the user (free — batch all questions in one AskUserQuestion)
    2. read code / git blame (cheap)
    3. logs / DB read-only (cheap)
