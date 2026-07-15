@@ -12,6 +12,7 @@
     { "name": "researcher", "version": "^0.6.0" },
     { "name": "worktrees", "version": "^0.2.0" },
     { "name": "observer", "version": "^0.1.0" },
+    { "name": "bug-detective", "version": "^0.1.0" },
     { "name": "project-executor", "version": "^0.4.0" }
   ]
 }

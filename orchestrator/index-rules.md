@@ -7,8 +7,12 @@ Match the user's intent to a plugin BEFORE improvising with raw tools. These plu
 2. **Finding is a researcher job first.** ANY locate / look-up / trace / compare / "where is X" / "how does Y work (deep)" / investigate routes to **researcher** (`/research`) as the primary toolset BEFORE any raw grep/glob/web search. researcher owns tool routing (graphify/serena/context-mode/web) and grounding; the goggles delegate their own discovery to it too.
 
 **Triggers → plugin:**
-- "research", "investigate", "compare options", "how does X work (deep)" → **researcher** (`/research`). It triages complexity (L1/L2/L3) and routes tools itself — do not hand-roll web searches for non-trivial questions.
-- "explain the architecture", "map the code", "why is this structured like this", debugging unfamiliar code → **architect-goggles** (`/explain`, arch-map/flow-trace skills).
+- research/investigate a question (no bug symptom), "compare options", "how does X work (deep)" → **researcher** (`/research`). It triages complexity (L1/L2/L3) and routes tools itself — do not hand-roll web searches for non-trivial questions.
+- symptom/bug with UNKNOWN cause ("it's broken", "users report X", bug ticket without a
+  diagnosed root cause) → **bug-detective** (`/investigate`). Known cause → normal fix
+  flow. While a case is open, bug-detective's loop supersedes
+  superpowers:systematic-debugging.
+- "explain the architecture", "map the code", "why is this structured like this", debugging unfamiliar code (cause already known or no investigation open) → **architect-goggles** (`/explain`, arch-map/flow-trace skills).
 - "product view", "user journey", "capability map", demo/presentation of flows → **product-designer-goggles** (`/product`).
 - "run it", "verify it works", "reproduce the bug", tests/builds/browser flows, evidence for a claim → **project-executor** (execute skill). Prefer it over ad-hoc Bash app-driving.
 - starting/resuming/switching/wrapping up work, "where did we leave off", session memory → **tasks-manager** (`/task-start`, `/task-new`, `/task-wrap-up`).

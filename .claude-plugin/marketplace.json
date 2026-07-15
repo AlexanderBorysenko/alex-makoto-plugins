@@ -10,6 +10,12 @@
   ],
   "plugins": [
     {
+      "name": "bug-detective",
+      "source": "./bug-detective",
+      "version": "0.1.0",
+      "description": "Stateful, budgeted bug-diagnosis controller: case file, hypothesis ledger, cheapest-test-first loop, verdict dossier with map tour. Orchestrates researcher, project-executor, architect-goggles."
+    },
+    {
       "name": "orchestrator",
       "source": "./orchestrator",
       "version": "0.1.12",
