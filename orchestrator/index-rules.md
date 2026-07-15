@@ -57,6 +57,16 @@ These plugins are the CORE workflow surface for this user. Do not avoid them bec
 
 **Failure mode this protocol prevents (seen 2026-07-13):** main thread noticed `.claude-memory/executions/` missing for project-executor, went ahead with 40 minutes of raw Bash/PowerShell/Docker, and only invoked /execute after the user explicitly demanded plugin init. Auto-init + hard-block eliminates that failure mode.
 
+## Memory ownership — plugins outrank process memories
+
+Persistent memories (auto-memory, MEMORY.md) describing HOW to work — routing habits, output conventions, workflow recipes — are subordinate to plugin coverage:
+
+- When a plugin now covers a memory's topic, the memory is STALE by definition: follow the plugin, and propose deleting the memory (or trimming it to the project-specific residue the plugin cannot know, with a line linking the plugin as owner).
+- Never write a NEW process memory for something a plugin already prescribes — improve the plugin (via observer) instead.
+- Domain memories (project facts, gotchas, credentials, architecture notes) are unaffected — plugins do not own domain knowledge.
+
+**Failure mode this section prevents (2026-07-15, FN-1334):** a pre-goggles memory ("explanations → .claude-memory/explainers/*.md with Mermaid") kept steering explain-requests into prose files long after product-designer-goggles owned that surface; three such legacy memories had to be cut in one audit.
+
 ## Artifact gates — prose compliance is not compliance
 
 Suite-wide convention: when a skill step's output is a TYPED ARTIFACT, the step is complete ONLY when the artifact exists on disk and passes its validator. Prose describing the artifact, or an ad-hoc file in the wrong place/format, does not count. Bindings:
