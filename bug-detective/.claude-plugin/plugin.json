@@ -1,0 +1,13 @@
+{
+  "name": "bug-detective",
+  "version": "0.1.0",
+  "description": "Stateful, budgeted bug-diagnosis controller: case file, hypothesis ledger with explicit elimination, cheapest-discriminating-test-first loop, verdict dossier with map-anchored tour. Orchestrates researcher, project-executor and architect-goggles; diagnosis only, never fixes.",
+  "author": {
+    "name": "Alex"
+  },
+  "dependencies": [
+    { "name": "researcher", "version": "^0.6.0" },
+    { "name": "project-executor", "version": "^0.5.0" },
+    { "name": "architect-goggles", "version": "^0.5.0" }
+  ]
+}
