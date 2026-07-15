@@ -5,7 +5,7 @@ description: Build a task-scoped PCE map document (nodes, edges, black-box perim
 
 # arch-map
 
-Produces `map.json` conforming to `spec/schema.v0.4.json`. Obey `spec/agent-contract.md`.
+Produces `map.json` conforming to `spec/schema.v0.5.json`. Obey `spec/agent-contract.md`.
 
 **Preset check (before step 1):** if the human asked, in any phrasing, for "simple words" /
 high level / big picture / nutshell — load `presets/overview.md` and follow contract §11:
@@ -51,7 +51,7 @@ map from it (`<task-slug>.overview.json`). The overview is never built from code
    live from disk: edit + refresh is the whole update loop.
 
 ## Output requirements
-- Valid against schema v0.4 (run a JSON Schema validation if ajv is available).
+- Valid against schema v0.5 (run a JSON Schema validation if ajv is available).
 - `node spec/lint.mjs <map.json>` passes with no errors before you hand over the link.
 - `meta.source_root` set (live code preview depends on it).
 - Perimeter closure: nothing in scope without a resolution.

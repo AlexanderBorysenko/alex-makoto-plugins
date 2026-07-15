@@ -22,7 +22,7 @@ Core ideas baked into the spec:
 ## Layout
 ```
 .claude-plugin/plugin.json   plugin manifest
-spec/schema.v0.4.json        JSON Schema for map documents
+spec/schema.v0.5.json        JSON Schema for map documents
 spec/agent-contract.md       generation rules & well-formedness (the "law" for agents)
 skills/                      arch-map, flow-trace, impact-diff, perimeter-scan
 commands/explain.md          /explain orchestration command

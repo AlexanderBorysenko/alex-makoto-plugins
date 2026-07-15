@@ -1,0 +1,84 @@
+{
+  "protocol_version": "0.5",
+  "meta": {
+    "title": "Test Tour Fixture",
+    "intent": "explain",
+    "generated_at": "2026-07-15T10:00:00Z",
+    "commit_hash": "abc1234def5678",
+    "analysis_scope": "Test scope for tour validation",
+    "case_rounds": [
+      {
+        "round": 1,
+        "action": "read code",
+        "outcome": "H2 eliminated"
+      }
+    ],
+    "case_rounds_max": 3
+  },
+  "nodes": [
+    {
+      "id": "node_1",
+      "display_id": "N1",
+      "kind": "service",
+      "label": "Service A",
+      "resolution": "confirmed",
+      "scope": "in_focus",
+      "summary": "A test service"
+    },
+    {
+      "id": "node_2",
+      "display_id": "N2",
+      "kind": "service",
+      "label": "Service B",
+      "resolution": "confirmed",
+      "scope": "in_focus",
+      "summary": "Another test service"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "display_id": "E1",
+      "from": "node_1",
+      "to": "node_2",
+      "kind": "evidenced_by",
+      "label": "Evidence link"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow_1",
+      "title": "Happy Path",
+      "kind": "happy_path",
+      "participants": ["node_1", "node_2"],
+      "steps": [
+        {
+          "seq": 1,
+          "explanation": "Service A sends request",
+          "arrows": [
+            {
+              "from": "node_1",
+              "to": "node_2",
+              "type": "call",
+              "edge": "edge_1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tours": [
+    {
+      "id": "t1",
+      "title": "Overview Tour",
+      "steps": [
+        {
+          "seq": 1,
+          "focus": ["node_1", "node_2", "edge_1"],
+          "md": "This is the first step of the tour, highlighting the two services and their evidence link.",
+          "flow_ref": "flow_1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "pce/schema/v0.4",
+  "$id": "pce/schema/v0.5",
   "title": "PCE Map Document",
   "description": "Task-scoped codebase map: one model, rendered as MAP (structure) and SEQUENCE (behavior) projections.",
   "type": "object",
   "required": ["protocol_version", "meta", "nodes", "edges", "flows"],
   "additionalProperties": false,
   "properties": {
-    "protocol_version": { "const": "0.4" },
+    "protocol_version": { "enum": ["0.4", "0.5"] },
 
     "meta": {
       "type": "object",
@@ -38,7 +38,22 @@
         "environment_manifest_ref": { "type": "string", "description": "Path/URL of the manifest consumed during generation, if any." },
         "preset": { "type": "string", "description": "Altitude preset this map was generated under (e.g. 'overview'). Absent = canonical full-detail map. Rules: agent-contract.md §11 + presets/<preset>.md." },
         "derived_from": { "type": "string", "description": "For preset projections: absolute path (forward slashes) of the canonical map this document was derived from. Projections are regenerated map-to-map, never analyzed from code directly." },
-        "source_root": { "type": "string", "description": "Absolute path to the analyzed repo on the machine running the viewer. When present, the viewer resolves node.source_refs (file:lineStart-lineEnd, repo-relative) to live code: previews the slice in the inspector and offers 'Open in IDE' (code -g). Omit to fall back to embedded code_snippets only." }
+        "source_root": { "type": "string", "description": "Absolute path to the analyzed repo on the machine running the viewer. When present, the viewer resolves node.source_refs (file:lineStart-lineEnd, repo-relative) to live code: previews the slice in the inspector and offers 'Open in IDE' (code -g). Omit to fall back to embedded code_snippets only." },
+        "case_rounds": {
+          "type": "array",
+          "description": "bug-detective investigation rounds, in order",
+          "items": {
+            "type": "object",
+            "required": ["round", "action", "outcome"],
+            "properties": {
+              "round": { "type": "integer" },
+              "action": { "type": "string" },
+              "outcome": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "case_rounds_max": { "type": "integer", "description": "budget: max rounds before interim dossier" }
       }
     },
 
@@ -149,6 +164,35 @@
           "hl": { "type": "array", "items": { "type": "integer" } }
         }
       }
+    },
+
+    "tours": {
+      "type": "array",
+      "description": "Guided walkthroughs: ordered, map-anchored explanation steps",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "steps"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["seq", "focus", "md"],
+              "additionalProperties": false,
+              "properties": {
+                "seq": { "type": "integer" },
+                "focus": { "type": "array", "items": { "type": "string" }, "description": "node and/or edge ids highlighted at this step" },
+                "md": { "type": "string", "description": "one paragraph, rendered as markdown in the viewer side panel" },
+                "flow_ref": { "type": "string", "description": "optional flow id to auto-play at this step" }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -215,8 +259,8 @@
         "from": { "type": "string" },
         "to": { "type": "string" },
         "kind": {
-          "enum": ["sync_call", "async_msg", "data_dep", "suspected_influence"],
-          "description": "suspected_influence: dashed '?' edge from/to a black box. On confirmation becomes a real kind (and may inject arrows into existing flows); on dismissal disappears with the box."
+          "enum": ["sync_call", "async_msg", "data_dep", "suspected_influence", "evidenced_by", "refuted_by"],
+          "description": "suspected_influence: dashed '?' edge from/to a black box. On confirmation becomes a real kind; on dismissal disappears with the box. evidenced_by/refuted_by: epistemic edges from an evidence artifact or code node to a hypothesis node — excluded from metrics like suspected_influence."
         },
         "label": { "type": "string" },
         "evidence": { "type": "string", "description": "Required when kind=suspected_influence." }

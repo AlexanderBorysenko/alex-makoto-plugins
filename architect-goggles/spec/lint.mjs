@@ -144,7 +144,7 @@ export function lintMap(doc) {
   const displayById = new Map((doc.nodes || []).map((n) => [n.id, n.display_id]));
   const ref = (id) => `${displayById.get(id) || "?"}/${id}`;
 
-  if (doc.protocol_version !== "0.4") errors.push("protocol_version must be '0.4'");
+  if (!["0.4", "0.5"].includes(doc.protocol_version)) errors.push("protocol_version must be '0.4' or '0.5'");
   if (!doc.meta?.commit_hash) errors.push("meta.commit_hash missing (maps are ephemeral — stamp them)");
   if (!doc.meta?.source_root && !doc.code_snippets)
     warnings.push("meta.source_root missing and no code_snippets — viewer cannot show code for source_refs ('Open in IDE' dead; contract §8)");
@@ -183,6 +183,29 @@ export function lintMap(doc) {
       else if (a.type === "return") stack--;
     }
     if (stack !== 0) warnings.push(`flow ${f.id}: call/return stack unbalanced (${stack > 0 ? "+" : ""}${stack}) — fine only for explained async handoffs (contract §5)`);
+  }
+
+  // tours: ref integrity
+  const flowIds = new Set((doc.flows || []).map(f => f.id));
+  const tourIds = new Set();
+  for (const t of doc.tours || []) {
+    if (!t.id || !t.title || !Array.isArray(t.steps) || t.steps.length === 0) {
+      errors.push(`tour ${t.id || "?"}: requires id, title and non-empty steps`);
+      continue;
+    }
+    if (tourIds.has(t.id)) errors.push(`tour ${t.id}: duplicate tour id`);
+    tourIds.add(t.id);
+    for (const s of t.steps) {
+      for (const ref_node_edge of s.focus || []) {
+        if (!nodeIds.has(ref_node_edge) && !edgeIds.has(ref_node_edge)) {
+          errors.push(`tour ${t.id}: step ${s.seq}: focus ref '${ref_node_edge}' is neither a node nor an edge id`);
+        }
+      }
+      if (s.flow_ref && !flowIds.has(s.flow_ref)) {
+        errors.push(`tour ${t.id}: step ${s.seq}: unknown flow_ref '${s.flow_ref}'`);
+      }
+      if (!s.md) errors.push(`tour ${t.id}: step ${s.seq}: missing md`);
+    }
   }
 
   // Deterministic metrics: LLM-written numbers are hard errors (contract §7).
