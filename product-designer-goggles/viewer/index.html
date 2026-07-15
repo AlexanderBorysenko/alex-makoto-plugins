@@ -313,7 +313,7 @@ let MAP_BASE=location.href;   // base URL for resolving step.screenshot paths
 const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null,tour:null,tourStep:-1};
 const NS="http://www.w3.org/2000/svg";
 function el(tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;return e;}
-function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
 // ISSUE PROTOCOL: parse shape:/incidence: lines out of a node's summary+evidence text.
 // Applies to ANY node that carries the fields, not just kind:"hypothesis".
 function issueBadges(n){

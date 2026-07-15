@@ -1,5 +1,5 @@
 {
-  "protocol_version": "0.4",
+  "protocol_version": "0.5",
   "meta": {"title": "Particle FX demo map", "intent": "explain", "commit_hash": "deadbeefcafe", "generated_at": "2026-07-08T12:00:00Z", "analysis_scope": "Order processing flow"},
   "nodes": [
     {"id": "n_api", "display_id": "N1", "kind": "controller", "label": "API Controller", "resolution": "confirmed", "scope": "in_focus", "summary": "Entry point", "source_refs": [], "expandable": false},

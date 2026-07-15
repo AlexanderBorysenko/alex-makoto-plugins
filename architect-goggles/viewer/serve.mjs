@@ -105,4 +105,4 @@ http.createServer(async (req, res) => {
   } catch {
     res.writeHead(404); res.end("not found");
   }
-}).listen(PORT, () => console.log(`PCE viewer: http://localhost:${PORT}  (map: /?path=<abs path to map.json>, or / for the bundled example)`));
+}).listen(PORT, "127.0.0.1", () => console.log(`PCE viewer: http://localhost:${PORT}  (map: /?path=<abs path to map.json>, or / for the bundled example)`));
