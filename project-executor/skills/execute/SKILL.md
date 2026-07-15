@@ -8,6 +8,8 @@ description: Execute real actions on the local project using durable execution m
 Router + flows for real local execution. Contracts (in this plugin, read the ones
 the flow needs): `spec/memory-contract.md`, `spec/evidence-contract.md`,
 `spec/instrumentation-contract.md`, `spec/report-contract.md`.
+Artifact gate (orchestrator index-rules): a run's claims are complete only with the
+written evidence report — chat assertions without the evidence bundle do not count.
 
 ## Setup (every invocation)
 

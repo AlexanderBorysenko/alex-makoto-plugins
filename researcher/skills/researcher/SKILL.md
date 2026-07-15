@@ -8,6 +8,8 @@ description: Deterministic research workflow for codebase/domain questions. Use 
 You are running a disciplined research workflow. The goal is the widest complete
 answer using the right tooling in the fastest way — and never inventing logic
 that does not exist. Flow: **triage → route → execute → ground → (persist)**.
+Artifact gate (orchestrator index-rules): L2/L3 answers are complete only when the
+finding is persisted to the research store with evidence pointers.
 
 ## Grounding rules (active for the whole research task)
 

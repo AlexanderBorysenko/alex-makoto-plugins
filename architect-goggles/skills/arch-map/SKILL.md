@@ -6,6 +6,8 @@ description: Build a task-scoped PCE map document (nodes, edges, black-box perim
 # arch-map
 
 Produces `map.json` conforming to `spec/schema.v0.5.json`. Obey `spec/agent-contract.md`.
+Artifact gate (orchestrator index-rules): the deliverable is a LINTED map + viewer
+`?path=` link — a Mermaid/prose diagram in an `.md` file does not count.
 
 **Preset check (before step 1):** if the human asked, in any phrasing, for "simple words" /
 high level / big picture / nutshell — load `presets/overview.md` and follow contract §11:

@@ -8,6 +8,8 @@ description: Build a task-scoped PJM capability map — capabilities, screens, r
 Produces `.claude-memory/product/maps/<task-slug>.json` conforming to
 `spec/schema.v0.2.json`. Obey `spec/agent-contract.md` (all §§; especially
 §2 knowledge priority, §3 unsourced-why, §5 perimeter gate, §11 language).
+Artifact gate (orchestrator index-rules): the deliverable is a LINTED map + viewer
+`?path=` link — a Mermaid/prose diagram in an `.md` file does not count.
 
 ## Procedure
 

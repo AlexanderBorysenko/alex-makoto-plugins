@@ -57,6 +57,18 @@ These plugins are the CORE workflow surface for this user. Do not avoid them bec
 
 **Failure mode this protocol prevents (seen 2026-07-13):** main thread noticed `.claude-memory/executions/` missing for project-executor, went ahead with 40 minutes of raw Bash/PowerShell/Docker, and only invoked /execute after the user explicitly demanded plugin init. Auto-init + hard-block eliminates that failure mode.
 
+## Artifact gates — prose compliance is not compliance
+
+Suite-wide convention: when a skill step's output is a TYPED ARTIFACT, the step is complete ONLY when the artifact exists on disk and passes its validator. Prose describing the artifact, or an ad-hoc file in the wrong place/format, does not count. Bindings:
+
+- **bug-detective**: case file from `templates/case.md` at `.claude-memory/cases/<slug>.md`; case map linted (`node architect-goggles/spec/lint.mjs`); viewer link posted. (Enforced by its §0 phase gate.)
+- **architect-goggles / product-designer-goggles**: map passes lint; viewer `?path=` link posted. A Mermaid/prose diagram in an `.md` file is NOT a map deliverable.
+- **researcher**: findings persisted to the research store with evidence pointers — an answer without a stored, citable finding is incomplete for L2/L3.
+- **project-executor**: evidence report written from captured outputs — a claim without the evidence bundle is incomplete.
+- **tasks-manager**: wrap-up = journal updated + spoke docs indexed, not a chat summary.
+
+Track the gates visibly: one todo per pending artifact when a skill runs multi-step. Skipping a gate requires saying so in chat with a reason (mirrors the Authority ladder rung 2).
+
 ## ISSUE PROTOCOL — canonical, applies to EVERY bug/defect/architecture-risk conclusion (plugin or not)
 
 This is the suite's single source for defect epistemics. Plugins (researcher, architect-goggles, product-designer-goggles) reference it — do not restate it elsewhere; patch it here.
