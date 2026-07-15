@@ -57,6 +57,30 @@ http.createServer(async (req, res) => {
       }
     }
 
+    // static asset relative to a map's directory: /asset?mapPath=<abs.json>&rel=<rel>&root=<abs>
+    // Resolves <rel> against dirname(mapPath); refuses to escape <root> (meta.source_root).
+    // Backs the evidence drawer's image resolution (shape:/incidence: artifacts) so images
+    // load in the browser even though location.href is /mapfile, not the map's directory.
+    if (url.pathname === "/asset") {
+      const mapPath = url.searchParams.get("mapPath") || "";
+      const rel = url.searchParams.get("rel") || "";
+      const root = url.searchParams.get("root") || "";
+      if (!mapPath || !rel) { res.writeHead(400, jsonHead); return res.end('{"error":"mapPath and rel required"}'); }
+      if (!root) { res.writeHead(400, jsonHead); return res.end('{"error":"root (meta.source_root) required"}'); }
+      const mapAbs = resolve(mapPath);
+      const mapDir = mapAbs.substring(0, mapAbs.lastIndexOf(sep));
+      const resolved = resolve(mapDir, rel);
+      const rootAbs = resolve(root);
+      const under = resolved === rootAbs
+        || resolved.toLowerCase().startsWith(rootAbs.toLowerCase() + sep);
+      if (!under) { res.writeHead(403, jsonHead); return res.end('{"error":"outside source_root"}'); }
+      try {
+        const body = await readFile(resolved);
+        res.writeHead(200, { "content-type": MIME[extname(resolved)] || "application/octet-stream", "cache-control": "no-store" });
+        return res.end(body);
+      } catch { res.writeHead(404, jsonHead); return res.end('{"error":"read failed"}'); }
+    }
+
     // launch editor at file:line: /open?root=<abs>&file=<rel>&line=<n>
     if (url.pathname === "/open") {
       const abs = within(url.searchParams.get("root") || "", url.searchParams.get("file") || "");

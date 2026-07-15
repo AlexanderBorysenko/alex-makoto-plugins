@@ -10,7 +10,7 @@
   },
   "nodes": [
     { "id": "role_shopper", "display_id": "R1", "kind": "role", "label": "Shopper", "resolution": "confirmed", "scope": "in_focus", "summary": "Buys products; applies promo codes at checkout.", "source_refs": [] },
-    { "id": "cap_promo", "display_id": "C1", "kind": "capability", "label": "Promo codes", "resolution": "confirmed", "scope": "in_focus", "summary": "Percentage and fixed-amount discounts applied to the cart total.", "source_refs": ["src/promo/apply.ts:10-80"] },
+    { "id": "cap_promo", "display_id": "C1", "kind": "capability", "label": "Promo codes", "resolution": "confirmed", "scope": "in_focus", "summary": "Percentage and fixed-amount discounts applied to the cart total.\nshape: confirmed — src/promo/apply.ts:41 rounds the discount with Math.floor instead of round-half-even\nincidence: observed $0.01 total mismatch on 3 of 12 sampled orders with percentage promos (support tickets #4482, #4499, #4511)", "source_refs": ["src/promo/apply.ts:10-80"] },
     { "id": "scr_cart", "display_id": "S1", "kind": "screen", "label": "Cart", "resolution": "confirmed", "scope": "in_focus", "summary": "Shows items, totals, promo input.", "source_refs": ["src/pages/cart.tsx:1-40"] },
     { "id": "scr_checkout", "display_id": "S2", "kind": "screen", "label": "Checkout", "resolution": "confirmed", "scope": "in_focus", "summary": "Payment + final total incl. discount.", "source_refs": ["src/pages/checkout.tsx:1-60"] },
     { "id": "rule_single_promo", "display_id": "BR1", "kind": "rule", "label": "One promo per order", "resolution": "confirmed", "scope": "in_focus", "summary": "Business rule: promos do not stack.", "source_refs": ["src/promo/apply.ts:22-30"] },

@@ -84,6 +84,11 @@
   .case-chip.ev{color:var(--add);border-color:var(--add)}
   .case-chip.ref{color:var(--rem);border-color:var(--rem)}
   .case-chip:hover{filter:brightness(1.3)}
+  .issuechips{margin:-4px 0 10px}
+  .issue-chip{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:3px 7px;border-radius:5px;border:1px solid var(--line);margin:2px 4px 2px 0;color:var(--dim)}
+  .issue-chip.shape{color:var(--k-gateway);border-color:var(--k-gateway)}
+  .issue-chip.observed{color:var(--rem);border-color:var(--rem)}
+  .issue-chip.unverified{color:var(--faint);border-color:var(--faint);border-style:dashed}
   svg{display:block}
   #svgMap,#svgSeq{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
   #svgMap.panning,#svgSeq.panning{cursor:grabbing;user-select:none;-webkit-user-select:none}
@@ -94,6 +99,8 @@
   .node.dim{opacity:.28}
   .node.suspected rect.body{stroke:var(--faint);stroke-dasharray:4 4;fill:#151a26}
   .node.suspected text.label{fill:var(--dim);font-style:italic}
+  .node.issue-observed rect.body{stroke:var(--rem);stroke-width:2;stroke-dasharray:none}
+  .node.issue-unverified rect.body{stroke:var(--faint);stroke-dasharray:4 4}
   .node text.label{fill:var(--text);font-size:13px;font-weight:600}
   .node text.kind{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em}
   .node text.nid,.edge text.eid{fill:var(--faint);opacity:.55;font-family:var(--mono);font-size:9px}
@@ -110,6 +117,9 @@
   .edge.async path.vis{stroke-dasharray:6 4}
   .edge.suspect path.vis{stroke:var(--faint);stroke-dasharray:2 5}
   .edge.suspect text{fill:var(--faint);font-style:italic}
+  .edge.evidence path.vis{stroke-dasharray:2 4}
+  .edge.evidence.pos path.vis{stroke:var(--add)}
+  .edge.evidence.neg path.vis{stroke:var(--rem)}
   .edge text{fill:var(--faint);font-family:var(--mono);font-size:9.5px}
   .labelplate{fill:var(--bg);fill-opacity:.82;stroke:none}
   .edge.lit .labelplate{fill:var(--panel);fill-opacity:.9}
@@ -280,10 +290,29 @@
 /* ============ load map by ?path=<abs path to map.json> ============ */
 let DOC=null;
 const KIND_COLOR=k=>({controller:"var(--k-controller)",service:"var(--k-service)",gateway:"var(--k-gateway)",repo:"var(--k-repo)",queue:"var(--k-queue)",consumer:"var(--k-consumer)",internal:"var(--k-internal)",db_trigger:"var(--k-db_trigger)",scheduled_job:"var(--k-scheduled_job)",external_system:"var(--k-external_system)"}[k]||"var(--faint)");
+let MAP_BASE=location.href;   // base URL for resolving relative evidence-drawer image paths
 const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null,tour:null,tourStep:-1};
 const NS="http://www.w3.org/2000/svg";
 function el(tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;return e;}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+// ISSUE PROTOCOL: parse shape:/incidence: lines out of a node's summary+evidence text.
+// Applies to ANY node that carries the fields, not just kind:"hypothesis".
+function issueBadges(n){
+  const txt=[n.summary,n.evidence].filter(Boolean).join("\n");
+  const m=k=>{const r=txt.match(new RegExp("(?:^|\\n)\\s*"+k+":\\s*([^\\n]+)","i"));return r?r[1].trim():null;};
+  const shape=m("shape"), incidence=m("incidence");
+  if(!shape&&!incidence) return null;
+  return {shape, incidence, observed: /^observed/i.test(incidence||""), unverified: /^unverified/i.test(incidence||"")};
+}
+// resolve an evidence-drawer artifact path: absolute/data URL as-is; else via /asset
+// (relative to the map FILE, guarded by meta.source_root) or relative to MAP_BASE.
+function resolveAssetUrl(s,mapBaseUrl){
+  if(/^(https?:|data:)/i.test(s)) return s;
+  const mp=new URL(location.href).searchParams.get("path");
+  const root=DOC&&DOC.meta&&DOC.meta.source_root;
+  if(mp&&root) return `/asset?mapPath=${encodeURIComponent(mp)}&rel=${encodeURIComponent(s)}&root=${encodeURIComponent(root)}`;
+  try{return new URL(s,mapBaseUrl).href;}catch(e){return null;}
+}
 
 async function boot(){
   const params=new URLSearchParams(location.search);
@@ -291,6 +320,7 @@ async function boot(){
   // disk (edit file → refresh). No param → the bundled example map.
   const mapPath=params.get("path");
   const src=mapPath?`/mapfile?path=${encodeURIComponent(mapPath)}`:`maps/example.json`;
+  MAP_BASE=new URL(src,location.href).href;   // base for resolving relative evidence-drawer image paths
   const pathInput=document.getElementById("mapPath");
   if(mapPath)pathInput.value=mapPath;
   pathInput.addEventListener("keydown",e=>{
@@ -463,7 +493,9 @@ function drawNode(n,g,ctx){
   const isAdd=ctx.addsN.includes(n.id),isMod=ctx.mods.includes(n.id),isSusp=n.resolution==="suspected";
   const hasTS=!!(n.metrics&&typeof n.metrics.tangle_score==="number");
   const isHot=state.heat&&!isSusp&&ctx.hotspots&&(ctx.hotspots.has(n.display_id)||ctx.hotspots.has(n.id));
-  const grp=el("g",{class:"node"+(isSusp?" suspected":"")+(isLit?" lit":"")+(ctx.dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${x},${y})`});
+  const badges=issueBadges(n);
+  const issCls=badges?(badges.observed?" issue-observed":badges.unverified?" issue-unverified":""):"";
+  const grp=el("g",{class:"node"+(isSusp?" suspected":"")+issCls+(isLit?" lit":"")+(ctx.dimming&&!isLit?" dim":"")+(isSel?" selected":"")+(isAdd?" diff-add":"")+(isMod?" diff-mod":""),transform:`translate(${x},${y})`});
   const body=el("rect",{class:"body",width:w,height:h,rx:9});
   if(state.heat&&hasTS&&!isSusp)body.setAttribute("style",`stroke:${heatColor(n.metrics.tangle_score)};stroke-width:2.4`);
   else if(isHot)body.setAttribute("style","stroke:var(--rem);stroke-width:2.4");
@@ -545,12 +577,13 @@ function renderMap(){
   L.edgePairs.forEach(({e,a,b,name})=>{
     const ed=g.edge(a.id,b.id,name);if(!ed||!ed.points||!ed.points.length)return;
     const isLit=litEdges.has(e.id),isAdd=addsE.includes(e.id),isSusp=e.kind==="suspected_influence";
-    const grp=el("g",{class:"edge"+(e.kind==="async_msg"?" async":"")+(isSusp?" suspect":"")+(isLit?" lit":"")+(dimming&&!isLit?" dim":"")+(isAdd?" diff-add":"")});
+    const isEv=e.kind==="evidenced_by",isRef=e.kind==="refuted_by";
+    const grp=el("g",{class:"edge"+(e.kind==="async_msg"?" async":"")+(isSusp?" suspect":"")+((isEv||isRef)?" evidence "+(isEv?"pos":"neg"):"")+(isLit?" lit":"")+(dimming&&!isLit?" dim":"")+(isAdd?" diff-add":"")});
     const d=pointsPath(ed.points);
     grp.appendChild(el("path",{class:"hit",d}));
     grp.appendChild(el("path",{class:"vis",d,"marker-end":isLit?"url(#arrLit)":(isAdd?"url(#arrAdd)":"url(#arr)")}));
     const mid=ed.points[Math.floor(ed.points.length/2)]||ed.points[0];
-    const lab=(isSusp?"? ":"")+(e.label||"");                                    // semi-visible caption (as before)
+    const lab=(isSusp?"? ":"")+(isEv?"⊕ ":isRef?"⊖ ":"")+(e.label||"");          // semi-visible caption (as before)
     if(lab.trim()){
       const tw=measureWidth(lab,"edge",null)+8;
       grp.appendChild(el("rect",{class:"labelplate",x:mid.x-tw/2,y:mid.y-16,width:tw,height:13,rx:3}));
@@ -564,7 +597,7 @@ function renderMap(){
     grp.addEventListener("mouseenter",ev=>startHover(e,ev));                      // highlight follows cursor
     grp.addEventListener("mousemove",moveHover);
     grp.addEventListener("mouseleave",clearEdgeLabel);
-    grp.addEventListener("click",ev=>{ev.stopPropagation();showEdgeCrossNav(e);});
+    grp.addEventListener("click",ev=>{ev.stopPropagation();(isEv||isRef)?showEvidenceDrawer(e):showEdgeCrossNav(e);});
     worldMap.appendChild(grp);
   });
   const hotspots=new Set((DOC.advisory&&DOC.advisory.hotspots||[]).map(h=>h.node));
@@ -680,9 +713,15 @@ function caseCard(h,eliminated){
     const other=e.to===h.id?e.from:e.to,on=nodeById(other),isEv=e.kind==="evidenced_by";
     return `<span class="case-chip ${isEv?"ev":"ref"}" data-target="${esc(other)}">${isEv?"⊕ evidenced by ":"⊖ refuted by "}${esc(on?on.label:other)}</span>`;
   }).join("");
+  const badges=issueBadges(h);
+  const issChips=badges?`<div class="issuechips">`+
+    (badges.shape?`<span class="issue-chip shape">shape: ${esc(badges.shape)}</span>`:"")+
+    (badges.incidence?`<span class="issue-chip ${badges.observed?"observed":badges.unverified?"unverified":""}">incidence: ${esc(badges.incidence)}</span>`:"")+
+    `</div>`:"";
   return `<div class="case-card${eliminated?" eliminated":""}" data-id="${esc(h.id)}">
     <div class="title">${esc(h.label)}</div>
     <div class="sum">${esc(h.summary||"")}</div>
+    ${issChips}
     ${eliminated&&h.evidence?`<div class="reason">${esc(h.evidence)}</div>`:""}
     <div class="chips">${chips}</div>
   </div>`;
@@ -722,6 +761,11 @@ function selectNode(id){
     <span class="np-id">${n.display_id||""} · ${n.id} · ${n.scope||""}</span>
     <div class="np-title">${esc(n.label)}</div>
     <div class="np-sum">${esc(n.summary||"")}</div>`;
+  const badges=issueBadges(n);
+  if(badges)html+=`<div class="issuechips">`+
+    (badges.shape?`<span class="issue-chip shape">shape: ${esc(badges.shape)}</span>`:"")+
+    (badges.incidence?`<span class="issue-chip ${badges.observed?"observed":badges.unverified?"unverified":""}">incidence: ${esc(badges.incidence)}</span>`:"")+
+    `</div>`;
   if(n.evidence)html+=`<h2>evidence</h2><div class="np-ev">${esc(n.evidence)}</div>`;
   if(n.metrics){const m=n.metrics;
     html+=`<h2>metrics (deterministic)</h2><div class="metrics">`+
@@ -775,6 +819,47 @@ function showEdgeCrossNav(e){
     document.getElementById("tabSeq").disabled=false;
     renderFlows();setView("seq");syncPlaybar();renderAll();
   }));
+}
+// evidence drawer: resolve the artifact behind an evidenced_by/refuted_by edge
+// from its SOURCE node (e.from — the evidence/code side): source_refs → showCode;
+// else a code_snippets key mentioned in the node text → showCode; else an image
+// path in the node text → <img>; else fall back to the node's summary/evidence text.
+function evidenceArtifact(e){
+  const src=nodeById(e.from);
+  if(!src) return {kind:"text",text:e.evidence||e.label||""};
+  if(src.source_refs&&src.source_refs.length) return {kind:"code",ref:src.source_refs[0]};
+  const txt=[src.summary,src.evidence].filter(Boolean).join("\n");
+  const cs=DOC.code_snippets||{};
+  const csKey=Object.keys(cs).find(k=>txt.includes(k));
+  if(csKey) return {kind:"code",ref:csKey};
+  const img=txt.match(/[^\s"]+\.(?:png|jpe?g|gif|webp)/i);
+  if(img) return {kind:"image",path:img[0]};
+  return {kind:"text",text:txt||src.label||""};
+}
+function renderEvidenceImage(container,path){
+  container.innerHTML="";
+  const url=resolveAssetUrl(path,MAP_BASE);
+  if(!url){container.innerHTML=`<div class="empty">no resolvable image path</div>`;return;}
+  const img=document.createElement("img");
+  img.style.cssText="max-width:100%;border-radius:6px;display:block";
+  img.alt=path;
+  img.onerror=()=>{container.innerHTML=`<div class="empty">image failed to load: ${esc(path)}</div>`;};
+  img.src=url;
+  container.appendChild(img);
+}
+function showEvidenceDrawer(e){
+  const src=nodeById(e.from),dst=nodeById(e.to),isNeg=e.kind==="refuted_by";
+  let html=`<h2>${isNeg?"⊖ refuted_by":"⊕ evidenced_by"} · ${esc(e.display_id||"")}</h2>
+    <div class="np-title" style="font-size:13px">${esc(src?src.label:e.from)} → ${esc(dst?dst.label:e.to)}</div>
+    <div class="np-sum">${esc(e.label||"")}</div>`;
+  if(e.evidence)html+=`<div class="np-ev">${esc(e.evidence)}</div>`;
+  html+=`<h2>artifact</h2><div id="codeSlot"></div>`;
+  rp.innerHTML=html;
+  const art=evidenceArtifact(e);
+  const slot=document.getElementById("codeSlot");
+  if(art.kind==="code")showCode(art.ref);
+  else if(art.kind==="image")renderEvidenceImage(slot,art.path);
+  else slot.innerHTML=`<div class="np-sum">${esc(art.text||"(no artifact text)")}</div>`;
 }
 function renderCodeBlock(block){
   const slot=document.getElementById("codeSlot");
