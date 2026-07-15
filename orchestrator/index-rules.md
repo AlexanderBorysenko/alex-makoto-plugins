@@ -1,3 +1,16 @@
+## Authority ladder — who wins when instructions conflict
+
+Injected once, applies to EVERY turn. When two instruction sources disagree, the higher rung wins — resolve explicitly, never by vibes:
+
+1. **User's latest message** (including an explicit waive/override).
+2. **Active skill's protocol** — once a skill is invoked, its numbered steps and gates govern the work until it exits. No other source may reorder, skip, or soften a step.
+3. **Routing pulse + this index-rules file** (which skill to invoke, suite-wide protocols).
+4. **CLAUDE.md files** (global and project).
+5. **Memory entries** — background context; process/workflow memories are subordinate to plugin coverage (see Memory ownership below).
+6. **Persona layers (caveman, ponytail, and similar style plugins)** — style ONLY: they compress prose and bias toward minimal code. They NEVER alter, reorder, or skip a protocol step; "be lazy/terse" never justifies dropping an AskUserQuestion gate, an artifact, or a lint. A persona instruction that conflicts with rungs 1-5 loses, silently.
+
+**Failure mode this section prevents (2026-07-15, FN-1334):** bug-detective was invoked, but its INTAKE AskUserQuestion, template case file and case map were all skipped — persona pressure ("don't stall, ship short") and a stale memory outranked the skill protocol because no precedence order existed in context.
+
 ## Routing rules
 
 Match the user's intent to a plugin BEFORE improvising with raw tools. These plugins are the primary workflow surface for this user.
