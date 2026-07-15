@@ -102,11 +102,11 @@ v0.5, must pass lint):
   eliminated→`dismissed` (reason in `evidence`), confirmed→`confirmed`;
   put the ISSUE PROTOCOL block's `shape:`/`incidence:` lines into the node summary/evidence
   text (the viewer renders badges from them);
-- suspected code locations/services → normal PCE nodes with `source_refs`;
+- suspected code locations/services → normal PCE nodes with `source_refs` (`"file:line"` STRINGS, never `{file,line}` objects — lint rejects objects; they render as `[object Object]`);
 - evidence links → edges `kind: "evidenced_by"` / `"refuted_by"` (evidence/code node → hypothesis node);
 - rounds → `meta.case_rounds` [{round, action, outcome}] and `meta.case_rounds_max`;
 - verdict → `advisory.summary` + the verdict tour in `tours`;
-- `meta.intent: "debug"`. LLM never writes metric numbers (lint recomputes).
+- `meta.intent: "debug"`; `meta.session_language` = the human's session language code (all case-map prose in that language — contract §10). LLM never writes metric numbers (lint recomputes).
 
 ## Hard rules
 

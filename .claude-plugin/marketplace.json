@@ -12,7 +12,7 @@
     {
       "name": "bug-detective",
       "source": "./bug-detective",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "description": "Stateful, budgeted bug-diagnosis controller: case file, hypothesis ledger, cheapest-test-first loop, verdict dossier with map tour. Orchestrates researcher, project-executor, architect-goggles."
     },
     {
