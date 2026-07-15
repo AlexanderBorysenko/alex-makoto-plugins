@@ -19,5 +19,12 @@
        {"seq": 2, "explanation": "Service persists order", "arrows": [{"type": "call", "from": "n_svc", "to": "n_repo", "edge": "e2", "label": "save"}]},
        {"seq": 3, "explanation": "Service emits event", "arrows": [{"type": "async", "from": "n_svc", "to": "n_q", "edge": "e3", "label": "emit"}]}
      ]}
+  ],
+  "tours": [
+    {"id": "t1", "title": "How an order gets placed", "steps": [
+      {"seq": 1, "focus": ["n_api", "e1"], "md": "The **API Controller** receives the incoming request and calls the `Order Service` via `E1`."},
+      {"seq": 2, "focus": ["n_svc", "n_repo", "e2"], "md": "The `Order Service` persists the order through the **Order Repository** (`E2`)."},
+      {"seq": 3, "focus": ["n_svc", "n_q", "e3"], "md": "Finally the service emits an event onto the `Events Queue` — see the full call sequence in the linked flow.", "flow_ref": "f1"}
+    ]}
   ]
 }

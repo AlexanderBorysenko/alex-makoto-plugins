@@ -182,3 +182,12 @@ rules — §1–§10 apply to preset maps in full. Preset instruction files live
 - **Register guard:** presets simplify sentence shape and granularity ONLY. Technical
   vocabulary stays dev-native; analogies and metaphor renaming are forbidden (the
   reader must never reverse-translate a friendly name back into a code concept).
+
+## 12. Tours (guided walkthroughs)
+
+A tour turns an explanation into ordered, map-anchored steps: each step highlights
+`focus` nodes/edges and shows one markdown paragraph. Every `explain`-intent map
+SHOULD ship at least one tour. Verdict maps produced by bug-detective MUST ship a
+verdict tour (symptom → prime suspect → evidence). Every `focus` ref must be an
+existing node or edge id; `flow_ref` must name an existing flow (lint enforces both).
+Keep steps to one paragraph each — the tour is the reading port, not a second report.

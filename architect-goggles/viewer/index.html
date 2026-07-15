@@ -192,6 +192,10 @@
     <h2>Flows</h2>
     <div id="flowList"></div>
     <div id="flowDetail"></div>
+    <div id="tourSection" style="display:none">
+      <h2>Tours</h2>
+      <div id="tourList"></div>
+    </div>
     <h2 id="bbHead" style="display:none">⚠ Black boxes (perimeter)</h2>
     <div class="bb-list" id="bbList"></div>
     <div class="hint" id="hintBox"></div>
@@ -228,6 +232,16 @@
           <button id="pbClose">✕</button>
         </div>
       </div>
+      <div class="playbar" id="tourbar">
+        <div class="stepline">
+          <span class="seq" id="tourSeq"></span>
+        </div>
+        <div class="controls">
+          <button id="tourPrev">◀ prev</button>
+          <button id="tourNext" class="primary">next ▶</button>
+          <button id="tourClose">✕</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -245,7 +259,7 @@
 /* ============ load map by ?path=<abs path to map.json> ============ */
 let DOC=null;
 const KIND_COLOR=k=>({controller:"var(--k-controller)",service:"var(--k-service)",gateway:"var(--k-gateway)",repo:"var(--k-repo)",queue:"var(--k-queue)",consumer:"var(--k-consumer)",internal:"var(--k-internal)",db_trigger:"var(--k-db_trigger)",scheduled_job:"var(--k-scheduled_job)",external_system:"var(--k-external_system)"}[k]||"var(--faint)");
-const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null};
+const state={view:"map",diff:false,heat:false,expanded:{},selected:null,flow:null,step:-1,auto:null,tour:null,tourStep:-1};
 const NS="http://www.w3.org/2000/svg";
 function el(tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;return e;}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
@@ -492,7 +506,9 @@ function renderMap(){
   worldMap.innerHTML="";hoverLayer=null;
   const L=computeMapLayout(),g=L.g;
   const litNodes=new Set(),litEdges=new Set();let dimming=false;
-  if(state.flow&&state.step>=0){dimming=true;const st=state.flow.steps[state.step];
+  if(state.tour&&state.tourStep>=0){dimming=true;const st=state.tour.steps[state.tourStep];
+    (st.focus||[]).forEach(id=>{if(nodeById(id))litNodes.add(id);if(DOC.edges.some(e=>e.id===id))litEdges.add(id);});
+  }else if(state.flow&&state.step>=0){dimming=true;const st=state.flow.steps[state.step];
     stepNodes(st).forEach(id=>litNodes.add(id));stepEdges(st).forEach(id=>litEdges.add(id));}
   const mods=modifiedIds(),addsN=addedNodeIds(),addsE=addedEdgeIds();
   L.clusters.forEach(({clId,pid})=>{
@@ -812,6 +828,71 @@ document.getElementById("pbAuto").addEventListener("click",function(){
 });
 function stopAuto(){if(state.auto){clearInterval(state.auto);state.auto=null;}const b=document.getElementById("pbAuto");if(b)b.textContent="▶ auto";}
 
+/* ============ tours ============ */
+const tourbar=document.getElementById("tourbar");
+function renderTours(){
+  const sec=document.getElementById("tourSection"), list=document.getElementById("tourList");
+  if(!DOC.tours||!DOC.tours.length){sec.style.display="none";return;}
+  sec.style.display=""; list.innerHTML="";
+  DOC.tours.forEach(t=>{
+    const d=document.createElement("div");
+    d.className="flow"+(state.tour&&state.tour.id===t.id?" active":"");
+    d.innerHTML=`<div class="name">${esc(t.title)}</div><div class="kindtag">tour · ${t.steps.length} steps</div>`;
+    d.addEventListener("click",()=>{ startTour(t); });
+    list.appendChild(d);
+  });
+}
+function startTour(t){
+  stopAuto();state.step=-1;hidePlaybar();
+  state.tour=t;state.tourStep=0;
+  setView("map");
+  renderTours();
+  tourbar.classList.add("show");
+  applyTourStep();
+}
+function applyTourStep(){
+  const t=state.tour,st=t.steps[state.tourStep];
+  if(st.flow_ref){
+    const f=DOC.flows.find(fl=>fl.id===st.flow_ref);
+    if(f){state.flow=f;document.getElementById("tabSeq").disabled=false;renderFlows();}
+  }
+  document.getElementById("tourSeq").textContent=`Step ${state.tourStep+1}/${t.steps.length} — ${t.title}`;
+  document.getElementById("tourPrev").disabled=state.tourStep===0;
+  document.getElementById("tourNext").disabled=state.tourStep===t.steps.length-1;
+  rp.innerHTML=`<h2>Tour · ${esc(t.title)}</h2><div id="tourMd">${mdToHtml(st.md)}</div>`;
+  renderAll();
+}
+function closeTour(){
+  state.tour=null;state.tourStep=-1;
+  tourbar.classList.remove("show");
+  if(state.selected)selectNode(state.selected);
+  else{rp.innerHTML=`<h2>Inspector</h2><div class="empty">Click a node / lifeline / edge. Black boxes are in the left sidebar.</div>`;renderAll();}
+}
+document.getElementById("tourNext").addEventListener("click",()=>{if(state.tour&&state.tourStep<state.tour.steps.length-1){state.tourStep++;applyTourStep();}});
+document.getElementById("tourPrev").addEventListener("click",()=>{if(state.tour&&state.tourStep>0){state.tourStep--;applyTourStep();}});
+document.getElementById("tourClose").addEventListener("click",closeTour);
+function mdToHtml(md){
+  const escT=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const inline=s=>escT(s)
+    .replace(/`([^`]+)`/g,"<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g,"<em>$1</em>");
+  const out=[]; let list=false, code=false, buf=[];
+  for(const ln of md.split(/\r?\n/)){
+    if(ln.startsWith("```")){ if(code){out.push("<pre><code>"+escT(buf.join("\n"))+"</code></pre>");buf=[];} code=!code; continue; }
+    if(code){ buf.push(ln); continue; }
+    const li=ln.match(/^[-*]\s+(.*)/);
+    if(li){ if(!list){out.push("<ul>");list=true;} out.push("<li>"+inline(li[1])+"</li>"); continue; }
+    if(list){ out.push("</ul>"); list=false; }
+    const h=ln.match(/^(#{1,4})\s+(.*)/);
+    if(h){ out.push("<h4>"+inline(h[2])+"</h4>"); continue; }
+    if(ln.trim()) out.push("<p>"+inline(ln)+"</p>");
+  }
+  if(list) out.push("</ul>");
+  if(code) out.push("<pre><code>"+escT(buf.join("\n"))+"</code></pre>");
+  return out.join("");
+}
+
 /* ============ view tabs & zoom ============ */
 function setView(v){
   state.view=v;
@@ -973,7 +1054,7 @@ function init(){
     "display_id (N2, E3, BB1) — shared coordinate system with the agent: \"explain E3\", \"investigate BB1\".<br>"+
     (DOC.meta.scan_coverage?("scanned: "+(DOC.meta.scan_coverage.scanned_sources||[]).join(", ")+"<br>not scanned: "+(DOC.meta.scan_coverage.not_scanned||[]).join(", ")):"");
   if(DOC.flows&&DOC.flows.length){state.flow=DOC.flows[0];document.getElementById("tabSeq").disabled=false;}
-  renderFlows();renderBBs();renderAll();
+  renderFlows();renderTours();renderBBs();renderAll();
 }
 boot();
 </script>
