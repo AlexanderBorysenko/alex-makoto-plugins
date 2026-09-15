@@ -18,7 +18,7 @@
     {
       "name": "orchestrator",
       "source": "./orchestrator",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "description": "Bundle orchestrator: injects a generated routing table of all installed alex-makoto plugins plus hand-authored when-to-use, handoff, and precedence rules into every session, so Claude picks and chains the right plugin without being told."
     },
     {
@@ -42,7 +42,7 @@
     {
       "name": "researcher",
       "source": "./researcher",
-      "version": "0.6.4",
+      "version": "0.6.5",
       "description": "Deterministic research orchestration: complexity triage (L1/L2/L3), tool routing over Graphify/Serena/context-mode/web, anti-hallucination grounding, citable research memory."
     },
     {

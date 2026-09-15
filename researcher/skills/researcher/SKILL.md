@@ -131,7 +131,7 @@ Walk the draft answer claim by claim:
    - bump `updated:`.
    Never edit a finding retroactively — supersede via a new finding, then update the wiki page.
 
-Boundary: never write into `.claude-memory/` — that store belongs to the tasks-manager plugin (formerly memory-system).
+Boundary: write only under `.claude-memory/research/` (findings, wiki, INDEX.md, config.md). The rest of `.claude-memory/` (tasks/, maps/, executions/, …) belongs to other plugins — never write there.
 
 ## Setup workflow (/research-setup)
 
