@@ -94,6 +94,10 @@ Every page starts with an HTML comment stating its purpose, then entries.
   `## page:<route>` blocks — stable selectors, async/layout gotchas
   ("table renders async, wait for `[data-loaded]`"), written back after flows.
 `gotchas.md`: `## <symptom>` blocks — symptom, cause, resolution, `verified:` date.
+  A blocker gotcha names exactly the path that was probed ("password grant refused
+  on client X", "storageState expired") and never generalises to "cannot log in /
+  impossible" — an automation blocker is not an environment blocker until the
+  interactive path was tried too.
   Instrumentation points: `## trace-point:<topic>` — file:line, what to log, why useful.
 `wiki/<slug>.md`: freeform, but starts with one-sentence purpose and ends with a
   `links:` line of related `[[pages]]`.

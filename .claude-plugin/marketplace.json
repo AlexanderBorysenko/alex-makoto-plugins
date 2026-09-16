@@ -24,7 +24,7 @@
     {
       "name": "tasks-manager",
       "source": "./tasks-manager",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "description": "Task journals + cross-plugin memory index (hub-and-spoke, Karpathy LLM-wiki framing). Formerly memory-system: spokes own domain memory; this hub owns task state and the link index."
     },
     {
@@ -60,7 +60,7 @@
     {
       "name": "project-executor",
       "source": "./project-executor",
-      "version": "0.5.3",
+      "version": "0.5.4",
       "description": "Execution memory + real local execution: lifecycle, tests, browser flows, instrumented bug repro, evidence-backed reports."
     }
   ]
