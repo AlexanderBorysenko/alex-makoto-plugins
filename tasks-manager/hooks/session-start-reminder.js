@@ -2,8 +2,8 @@
 
 const reminder = `Tasks-manager plugin active (formerly memory-system). If \`./.claude-memory/\` exists in this project, run the startup ritual now:
 
-1. Read \`./.claude-memory/architecture_cache.md\` (the narrative file — project overview, DevOps, conventions, gotchas).
-2. Run \`node \${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js tasks\` and read its output to load the index of open tasks. Do NOT read any task journal yet — there is no "current/active" task to auto-load.
+1. If the first user message already names a task, ticket or epic, skip to step 3 and load that journal directly; read \`./.claude-memory/architecture_cache.md\` only when the work needs project-wide context. Otherwise read it now (project overview, DevOps, conventions, gotchas).
+2. Run \`node \${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js tasks\` and read its output to load the index of open tasks — unless step 1 already resolved which task is in focus. Do NOT read any task journal yet — there is no "current/active" task to auto-load.
 3. Let the user's messages reveal what they are resuming. When intent is clear, match it against the index and read only that one task's journal at \`./.claude-memory/tasks/<slug>.md\` (current state only — no historical log). If the first message already names or implies a task, match and load it immediately. If it names a ticket or task that has NO journal yet, create the journal (Tier 1 in the skill) before starting the work — not at wrap-up.
 4. If intent is not yet clear, give a one-line ready signal (e.g. "Memory loaded — N open tasks indexed; what are we picking up?") instead of guessing a task.
 

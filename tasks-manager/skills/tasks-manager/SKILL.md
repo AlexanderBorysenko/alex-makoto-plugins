@@ -49,8 +49,8 @@ Triggered at session start (via SessionStart hook) or by `/task-start` (legacy a
 There is **no "current/active" task**. Startup is index-first and lazy: load the lightweight index, then let the user's messages reveal which task is being resumed, and load only that journal on demand.
 
 1. If `./.claude-memory/` does not exist: run the init flow (see Initialization section below). Offer once; do not nag again.
-2. Read `./.claude-memory/architecture_cache.md` — the narrative file (project overview, DevOps surface, conventions, gotchas). Do not load `arch/<component>.md` detail pages until you need them.
-3. Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js tasks` and read its output to load the index of open tasks. The script parses per-task frontmatter — there is no on-disk index file. **Do not read any task journal yet.**
+2. If the first user message already names a task, ticket or epic, skip to step 4 and load that journal directly; read `./.claude-memory/architecture_cache.md` only when the work needs project-wide context. Otherwise read it now — the narrative file (project overview, DevOps surface, conventions, gotchas). Do not load `arch/<component>.md` detail pages until you need them.
+3. Run `node ${CLAUDE_PLUGIN_ROOT}/bin/mem-index.js tasks` and read its output to load the index of open tasks — unless step 2 already resolved which task is in focus. The script parses per-task frontmatter — there is no on-disk index file. **Do not read any task journal yet.**
 4. Let the user's messages reveal what they are resuming. When intent is clear, match it against the index (by slug, title, topics, or subject) and read only that one task's journal at `./.claude-memory/tasks/<slug>.md` in full. The journal contains only current state. If the first message already names or implies a task, match and load it immediately.
 5. If intent is not yet clear, give a one-line ready signal (e.g. "Memory loaded — N open tasks indexed; what are we picking up?") rather than guessing or auto-loading a task. Open tasks are sorted most-recently-updated first as a hint, not a default selection.
 

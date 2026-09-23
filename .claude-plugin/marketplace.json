@@ -24,13 +24,13 @@
     {
       "name": "tasks-manager",
       "source": "./tasks-manager",
-      "version": "0.4.2",
+      "version": "0.4.3",
       "description": "Task journals + cross-plugin memory index (hub-and-spoke, Karpathy LLM-wiki framing). Formerly memory-system: spokes own domain memory; this hub owns task state and the link index."
     },
     {
       "name": "architect-goggles",
       "source": "./architect-goggles",
-      "version": "0.7.1",
+      "version": "0.7.2",
       "description": "Architect Goggles: a visual surface for looking at a codebase — agent-generated, task-scoped architecture maps (PCE) with structural and behavioral projections, black-box perimeter tracking, change review as diagram diffs, and a local viewer."
     },
     {

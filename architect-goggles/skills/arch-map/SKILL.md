@@ -58,6 +58,10 @@ map from it (`<task-slug>.overview.json`). The overview is never built from code
 - `meta.source_root` set (live code preview depends on it).
 - `node.source_refs` are `"file:lineStart[-lineEnd]"` STRINGS, never `{file,line}` objects
   (an object renders as `[object Object]` and breaks code navigation — lint rejects it).
+- Every `arrow.edge` inside a flow must be an EXISTING `edges[].id` — lint rejects invented
+  ids. When the map is emitted by a script, have the edge-creation helper RETURN the id and
+  look it up (`eid(from, to, kind)`); ids re-derived by hand drift from the generator's
+  slugging (23 rejected arrows in one 2026-09-09 run).
 - Perimeter closure: nothing in scope without a resolution.
 - `scan_coverage` filled honestly (carried from researcher's finding — architect does not scan).
 - Language (contract §10): set `meta.session_language` to the human's session language code
