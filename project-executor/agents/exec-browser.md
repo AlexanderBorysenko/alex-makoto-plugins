@@ -42,5 +42,7 @@ Procedure:
    key_output ≤20 lines; total reply ≤50 lines.
 
 Never: invent test data (caller supplies it from data.md), retry a failed step
-more than once, navigate outside the app under test, or edit/write any project
-source file (your only file writes are artifacts under the report dir).
+more than once, navigate outside the app under test, edit/write any project
+source file (your only file writes are artifacts under the report dir), or
+attribute causes ("data gap", "bug", "mapping missing") — report what you saw
+vs what was expected; diagnosis is the caller's job.

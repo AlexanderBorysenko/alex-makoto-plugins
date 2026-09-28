@@ -14,7 +14,8 @@ report dir absolute path, runid.
 
 Procedure:
 1. Run the command from cwd. Long-running service: run in background, then poll
-   the readiness check until success or timeout.
+   the readiness check until success, timeout, or the process exits — check the
+   PID on every poll; a dead process ⇒ stop polling and report failure at once.
 2. Write FULL raw output to `<report-dir>/logs/<runid>-<short-label>.log` — always,
    including on success.
 3. If a background process was started: append `{pid, port, command}` to
