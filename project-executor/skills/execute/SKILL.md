@@ -90,6 +90,11 @@ is wasted budget.
 
 ### full-test
 1. Ensure app up (start flow). 2. Seed per data.md if scenario needs it.
+2b. **Clean-state rule:** when the scenario verifies seed/test data, fixtures or
+   migrations, run it on a FRESH DB/index (isolated containers, never a second
+   database in a shared cluster) — a lived-in DB masks ordering, idempotency and
+   migration-vs-seeder bugs. A pass on reused state must be reported as
+   `pass (reused state)`, never plain `pass`.
 2a. **Backend-readiness probe (before the FIRST `exec-browser` dispatch):** if
    the scenario depends on a backend capability with a cheap probe (an endpoint
    named in env.md/gotchas.md — e.g. a warm-data GET like
