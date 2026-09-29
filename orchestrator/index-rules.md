@@ -22,7 +22,8 @@ Match the user's intent to a plugin BEFORE improvising with raw tools. These plu
 **Triggers → plugin:**
 - "research", "investigate" (no bug symptom), "compare options", "how does X work (deep)" → **researcher** (`/research`). It triages complexity (L1/L2/L3) and routes tools itself — do not hand-roll web searches for non-trivial questions.
 - symptom/bug with UNKNOWN cause ("it's broken", "users report X", bug ticket without a
-  diagnosed root cause) → **bug-detective** (`/investigate`). Known cause → normal fix
+  diagnosed root cause, "reviewer/QA says it did not work for them or needed manual steps",
+  "works on my machine, fails on a clean setup") → **bug-detective** (`/investigate`). Known cause → normal fix
   flow. While a case is open, bug-detective's loop supersedes
   superpowers:systematic-debugging.
 - "explain the architecture", "map the code", "why is this structured like this", debugging unfamiliar code (cause already known or no investigation open) → **architect-goggles** (`/explain`, arch-map/flow-trace skills).
