@@ -70,6 +70,13 @@ dependency, missing key), surface the blocker to the caller immediately with
 unblock options — zero probing. A documented blocker rediscovered by probing
 is wasted budget.
 
+**Target host (any non-localhost run).** Before the first navigation or
+request, state the base URL in one line and take it from env.md only. A URL in
+browser.md or runbook.md that disagrees with env.md is wrong — correct the
+page, do not use it. A host env.md labels PROD is never a test target: stop
+and ask. Every `exec-browser` / `exec-runner` dispatch for a shared
+environment carries the allowed host.
+
 ### start / stop
 1. Find `## start:<svc>` / stop info in runbook.md. Stale (>14d) ⇒ verify-while-using:
    run it, and on success re-stamp.
